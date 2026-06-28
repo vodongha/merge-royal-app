@@ -1,4 +1,4 @@
-package vn.vodongha.merge_royal
+package com.merge.royal
 
 import io.flutter.embedding.android.FlutterActivity
 
