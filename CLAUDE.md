@@ -8,7 +8,8 @@ multipliers, manage mistakes, and use bomb/shuffle power-ups.
 - **Flutter 3.44 / Dart 3.12**, **Flame 1.37** (2D game engine).
 - `flame_audio` — SFX + looping music bed (assets synthesized as WAV, see below).
 - `in_app_update` — Google Play flexible/background updates.
-- `google_fonts` (Silkscreen / Baloo2 — fetched at runtime; consider bundling for offline).
+- Fonts **Silkscreen + Baloo2 bundled** in `assets/fonts/` (OFL) — fully offline,
+  no `google_fonts`/network needed (release builds have no INTERNET permission).
 - `shared_preferences` for save/continue + best score + mute flag.
 - Targets: **android** (primary), ios, windows, web (bonus, builds clean).
 
@@ -103,8 +104,7 @@ flutter build appbundle --release  # build AAB for Play Store
 - Git identity: vodongha@hotmail.com (local). applicationId: `vn.vodongha.merge_royal`.
 
 ## TODO / next
-- Bundle the Google Fonts as assets (offline) instead of runtime fetch.
-- Android release signing (keystore) before Play upload.
+- Android release signing (keystore) — done; keystore at C:\Users\ADMIN\merge-royal-upload.jks.
 - Optional: bump bgm/sfx quality (current WAVs are simple synth tones).
 - Done: ✅ audio (SFX+music+mute) ✅ merge/bomb particles + shake ✅ level-up
   confetti ✅ Play in-app (flexible) updates.

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Central place for the neon "Merge Royal" look & feel.
 class AppTheme {
@@ -18,6 +17,7 @@ class AppTheme {
 
   // Fonts -------------------------------------------------------------------
   /// Blocky arcade font used for titles & big numbers (close to the mock).
+  /// Bundled offline (no network needed) — see pubspec `fonts:`.
   static TextStyle arcade({
     double size = 24,
     Color color = Colors.white,
@@ -25,7 +25,8 @@ class AppTheme {
     double letterSpacing = 1.5,
     List<Shadow>? shadows,
   }) {
-    return GoogleFonts.silkscreen(
+    return TextStyle(
+      fontFamily: 'Silkscreen',
       fontSize: size,
       color: color,
       fontWeight: weight,
@@ -34,14 +35,15 @@ class AppTheme {
     );
   }
 
-  /// Softer rounded font for body copy.
+  /// Softer rounded font for body copy. Bundled offline.
   static TextStyle body({
     double size = 16,
     Color color = Colors.white,
     FontWeight weight = FontWeight.w600,
     double letterSpacing = 0.5,
   }) {
-    return GoogleFonts.baloo2(
+    return TextStyle(
+      fontFamily: 'Baloo2',
       fontSize: size,
       color: color,
       fontWeight: weight,
