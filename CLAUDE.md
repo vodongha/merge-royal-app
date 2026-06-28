@@ -17,7 +17,7 @@ multipliers, manage mistakes, and use bomb/shuffle power-ups.
   loop, persisted `muted` ValueNotifier shared by menu + pause. Hooked to game
   events (merge/combo/bomb/shuffle/mistake/levelup/gameover) + button taps.
 - `assets/audio/*.wav` are **procedurally generated** (no licensed assets) by
-  `scratchpad/gen_audio.py` — re-run it to tweak the sounds.
+  `tool/gen_audio.py` — re-run it to tweak the sounds.
 - Effects in `merge_royal_game.dart`: particle bursts on merge/bomb
   (`ParticleSystemComponent`) + screen-shake (canvas translate in `render`).
   Level-up **confetti** is a `CustomPainter` in `overlays.dart`.
@@ -76,6 +76,17 @@ Flutter HUD/overlays rebuild via `AnimatedBuilder(animation: controller)`.
 - **Level**: `levelScore` fills the top bar toward `levelTarget = 1000 + level*900`;
   on fill → LEVEL UP, `levelScore` resets (the big number under the bar), rewards.
 - **Game over**: mistakes hit 0, or board full with no legal move and no power-ups.
+
+## Branding / store assets
+- App display name: **Merge Royal** (AndroidManifest `android:label`, iOS
+  `CFBundleDisplayName`). applicationId `vn.vodongha.merge_royal`.
+- Launcher icons: `assets/icon/{icon,foreground,background}.png` →
+  generated into Android/iOS/web/windows via `dart run flutter_launcher_icons`.
+- `store/` holds Play Store upload art (not bundled): `play_icon_512.png`
+  (512×512 listing icon), `feature_graphic_1024x500.png` (header), `logo.png`.
+- All art (icons + store) is **procedurally drawn** by `tool/gen_icons.py`
+  with Pillow (neon two-card motif). Re-run it, then `flutter_launcher_icons`,
+  to change the look.
 
 ## Commands
 ```bash
