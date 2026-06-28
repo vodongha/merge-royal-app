@@ -1,0 +1,255 @@
+import 'package:flutter/material.dart';
+
+import '../theme/app_theme.dart';
+import 'neon_widgets.dart';
+
+/// Dimmed backdrop shared by modal dialogs.
+class _Scrim extends StatelessWidget {
+  const _Scrim({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: GestureDetector(
+        child: Container(
+          color: Colors.black.withValues(alpha: 0.72),
+          alignment: Alignment.center,
+          child: GestureDetector(onTap: () {}, child: child),
+        ),
+      ),
+    );
+  }
+}
+
+/// PAUSE dialog: resume / mute / home.
+class PauseDialog extends StatelessWidget {
+  const PauseDialog({
+    super.key,
+    required this.onResume,
+    required this.onHome,
+    required this.onToggleSound,
+    required this.muted,
+  });
+
+  final VoidCallback onResume;
+  final VoidCallback onHome;
+  final VoidCallback onToggleSound;
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Scrim(
+      child: NeonPanel(
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 34),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const NeonText('PAUSE', size: 44, color: Colors.white),
+          const SizedBox(height: 26),
+          NeonButton(label: 'RESUME', onTap: onResume, width: 240),
+          const SizedBox(height: 26),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            NeonIconButton(
+              icon: muted ? Icons.volume_off : Icons.volume_up,
+              onTap: onToggleSound,
+              color: const Color(0xFF3D7BFF),
+              filled: true,
+            ),
+            const SizedBox(width: 28),
+            NeonIconButton(
+                icon: Icons.home, onTap: onHome, color: AppTheme.danger, filled: true),
+          ]),
+        ]),
+      ),
+    );
+  }
+}
+
+/// LEVEL UP! celebratory overlay (auto-dismisses).
+class LevelUpOverlay extends StatefulWidget {
+  const LevelUpOverlay({super.key, required this.level, required this.points});
+  final int level;
+  final int points;
+
+  @override
+  State<LevelUpOverlay> createState() => _LevelUpOverlayState();
+}
+
+class _LevelUpOverlayState extends State<LevelUpOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ac =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 400))
+        ..forward();
+
+  @override
+  void dispose() {
+    _ac.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _Scrim(
+      child: ScaleTransition(
+        scale: CurvedAnimation(parent: _ac, curve: Curves.elasticOut),
+        child: NeonPanel(
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 34),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 120,
+              height: 120,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.good.withValues(alpha: 0.15),
+                border: Border.all(color: AppTheme.good, width: 4),
+                boxShadow: AppTheme.glow(AppTheme.good, blur: 24),
+              ),
+              child: NeonText('${widget.level}', size: 52, color: Colors.white),
+            ),
+            const SizedBox(height: 18),
+            const NeonText('LEVEL UP!', size: 34),
+            const SizedBox(height: 18),
+            Container(
+              width: 240,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppTheme.good.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.good, width: 2),
+              ),
+              child: NeonText('${widget.points} POINTS',
+                  size: 20, color: AppTheme.good),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// GAME OVER dialog.
+class GameOverDialog extends StatelessWidget {
+  const GameOverDialog({
+    super.key,
+    required this.score,
+    required this.best,
+    required this.level,
+    required this.onRetry,
+    required this.onHome,
+  });
+
+  final int score;
+  final int best;
+  final int level;
+  final VoidCallback onRetry;
+  final VoidCallback onHome;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Scrim(
+      child: NeonPanel(
+        color: AppTheme.danger,
+        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 32),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const NeonText('GAME OVER', size: 36, color: AppTheme.danger),
+          const SizedBox(height: 22),
+          _stat('SCORE', '$score'),
+          const SizedBox(height: 10),
+          _stat('BEST', '$best'),
+          const SizedBox(height: 10),
+          _stat('LEVEL', '$level'),
+          const SizedBox(height: 26),
+          NeonButton(label: 'RETRY', onTap: onRetry, width: 240),
+          const SizedBox(height: 16),
+          NeonButton(
+              label: 'HOME',
+              onTap: onHome,
+              width: 240,
+              color: const Color(0xFF3D7BFF)),
+        ]),
+      ),
+    );
+  }
+
+  Widget _stat(String label, String value) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Text(label, style: AppTheme.body(size: 18, color: Colors.white70)),
+      const SizedBox(width: 30),
+      Text(value, style: AppTheme.arcade(size: 22, color: Colors.white)),
+    ]);
+  }
+}
+
+/// Full HOW TO PLAY screen (objective / controls / tip).
+class HowToPlayDialog extends StatelessWidget {
+  const HowToPlayDialog({super.key, required this.onClose});
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: Container(
+        color: AppTheme.background.withValues(alpha: 0.97),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(children: [
+              Row(children: [
+                const Expanded(child: NeonText('HOW TO PLAY', size: 30)),
+                NeonIconButton(icon: Icons.close, onTap: onClose, size: 50),
+              ]),
+              const SizedBox(height: 20),
+              _section(
+                icon: Icons.gps_fixed,
+                title: 'OBJECTIVE',
+                body: 'Merge cards with the same number and score as high as possible!',
+              ),
+              const SizedBox(height: 16),
+              _section(
+                icon: Icons.touch_app,
+                title: 'CONTROLS',
+                body: 'DRAG a card from the front of a column and DROP it onto a matching card to MERGE. Build staircases (2,4,8…) for combo multipliers.',
+              ),
+              const SizedBox(height: 16),
+              _section(
+                icon: Icons.bolt,
+                title: 'POWER-UPS & CARDS',
+                body: 'Suit cards (♠♥♣♦♛) give bonus score, mistakes, bombs or shuffles. 🚫 locked cards block a column — blow them up with a BOMB. SHUFFLE rearranges the board.',
+              ),
+              const SizedBox(height: 16),
+              _section(
+                icon: Icons.warning_amber,
+                title: 'MISTAKES',
+                body: 'A wrong drop costs one of your MISTAKES LEFT (bottom-left). DRAGGABLE AT A TIME (bottom-right) is how many cards you can grab at once.',
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _section({required IconData icon, required String title, required String body}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.neon, width: 2.5),
+        boxShadow: AppTheme.glow(AppTheme.neon, blur: 10),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title, style: AppTheme.arcade(size: 18, color: AppTheme.neon)),
+        const SizedBox(height: 12),
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(icon, color: Colors.white, size: 34),
+          const SizedBox(width: 14),
+          Expanded(
+              child: Text(body,
+                  style: AppTheme.body(size: 15, color: Colors.white, weight: FontWeight.w600))),
+        ]),
+      ]),
+    );
+  }
+}

@@ -1,0 +1,233 @@
+import 'package:flutter/material.dart';
+
+import '../game/game_controller.dart';
+import '../theme/app_theme.dart';
+import 'neon_widgets.dart';
+
+/// Top status bar: level pips, progress, score and combo flash.
+class TopHud extends StatelessWidget {
+  const TopHud({super.key, required this.controller, required this.onInfo, required this.onPause});
+
+  final GameController controller;
+  final VoidCallback onInfo;
+  final VoidCallback onPause;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        return Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                NeonIconButton(icon: Icons.info_outline, onTap: onInfo, size: 50),
+                NeonIconButton(icon: Icons.pause, onTap: onPause, size: 50),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                _LevelPip(level: controller.level),
+                const SizedBox(width: 10),
+                Expanded(child: _ProgressBar(value: controller.levelProgress)),
+                const SizedBox(width: 10),
+                _LevelPip(level: controller.level + 1, dim: true),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _ScoreLine(
+                score: controller.levelScore, combo: controller.comboMultiplier),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _LevelPip extends StatelessWidget {
+  const _LevelPip({required this.level, this.dim = false});
+  final int level;
+  final bool dim;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = dim ? Colors.white54 : Colors.white;
+    return Container(
+      width: 54,
+      height: 54,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: const Color(0xFF14191D),
+        border: Border.all(color: c, width: 2.5),
+        boxShadow: dim ? null : AppTheme.glow(Colors.white, blur: 10),
+      ),
+      child: Text('$level',
+          style: AppTheme.arcade(size: 20, color: c, letterSpacing: 0)),
+    );
+  }
+}
+
+class _ProgressBar extends StatelessWidget {
+  const _ProgressBar({required this.value});
+  final double value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 22,
+      decoration: BoxDecoration(
+        color: const Color(0xFF14191D),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: Colors.white24, width: 2),
+      ),
+      child: LayoutBuilder(builder: (context, c) {
+        return Stack(children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            width: (c.maxWidth * value).clamp(0, c.maxWidth),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                  colors: [AppTheme.neonDeep, AppTheme.neon]),
+              borderRadius: BorderRadius.circular(9),
+              boxShadow: AppTheme.glow(AppTheme.neon, blur: 10),
+            ),
+          ),
+        ]);
+      }),
+    );
+  }
+}
+
+class _ScoreLine extends StatelessWidget {
+  const _ScoreLine({required this.score, required this.combo});
+  final int score;
+  final int combo;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      NeonText('$score', size: 34, color: Colors.white, letterSpacing: 2),
+      if (combo > 1)
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: NeonText('X$combo', size: 22, color: AppTheme.warning),
+        ),
+    ]);
+  }
+}
+
+/// Bottom power-up bar with bomb + shuffle.
+class PowerBar extends StatelessWidget {
+  const PowerBar({super.key, required this.controller});
+
+  final GameController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        return Container(
+          height: 88,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [
+              AppTheme.neonDeep.withValues(alpha: 0.9),
+              AppTheme.neon.withValues(alpha: 0.85),
+            ]),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+            boxShadow: AppTheme.glow(AppTheme.neon, blur: 18),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: Row(
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('TAP TO',
+                      style: AppTheme.arcade(size: 16, color: AppTheme.neonText)),
+                  Text('USE',
+                      style: AppTheme.arcade(size: 16, color: AppTheme.neonText)),
+                ],
+              ),
+              const Spacer(),
+              _PowerIcon(
+                icon: Icons.local_fire_department,
+                bg: const [Color(0xFFFF7A3D), Color(0xFFB71C1C)],
+                count: controller.bombs,
+                armed: controller.bombArmed,
+                onTap: controller.armBomb,
+              ),
+              const SizedBox(width: 22),
+              _PowerIcon(
+                icon: Icons.shuffle,
+                bg: const [Color(0xFF3D5BFF), Color(0xFF1A237E)],
+                count: controller.shuffles,
+                armed: false,
+                onTap: controller.useShuffle,
+              ),
+              const Spacer(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PowerIcon extends StatelessWidget {
+  const _PowerIcon({
+    required this.icon,
+    required this.bg,
+    required this.count,
+    required this.armed,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final List<Color> bg;
+  final int count;
+  final bool armed;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = count > 0;
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Stack(clipBehavior: Clip.none, children: [
+        Container(
+          width: 62,
+          height: 62,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: enabled ? bg : const [Color(0xFF555555), Color(0xFF333333)]),
+            border: Border.all(
+                color: armed ? Colors.white : Colors.black26, width: armed ? 3 : 2),
+            boxShadow: armed ? AppTheme.glow(Colors.white, blur: 14) : null,
+          ),
+          child: Icon(icon, color: Colors.white, size: 30),
+        ),
+        Positioned(
+          right: -4,
+          top: -4,
+          child: Container(
+            width: 24,
+            height: 24,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+                color: Color(0xFF14191D), shape: BoxShape.circle),
+            child: Text('$count',
+                style: AppTheme.arcade(size: 13, color: Colors.white, letterSpacing: 0)),
+          ),
+        ),
+      ]),
+    );
+  }
+}
