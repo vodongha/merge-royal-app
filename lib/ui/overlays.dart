@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
@@ -77,8 +79,10 @@ class LevelUpOverlay extends StatefulWidget {
 class _LevelUpOverlayState extends State<LevelUpOverlay>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ac =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 400))
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 1700))
         ..forward();
+  final List<_Confetto> _confetti =
+      List.generate(60, (_) => _Confetto.random());
 
   @override
   void dispose() {
@@ -88,10 +92,25 @@ class _LevelUpOverlayState extends State<LevelUpOverlay>
 
   @override
   Widget build(BuildContext context) {
-    return _Scrim(
-      child: ScaleTransition(
-        scale: CurvedAnimation(parent: _ac, curve: Curves.elasticOut),
-        child: NeonPanel(
+    return Positioned.fill(
+      child: Container(
+        color: Colors.black.withValues(alpha: 0.72),
+        alignment: Alignment.center,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned.fill(
+              child: AnimatedBuilder(
+                animation: _ac,
+                builder: (context, _) => CustomPaint(
+                  painter: _ConfettiPainter(_confetti, _ac.value),
+                ),
+              ),
+            ),
+            ScaleTransition(
+              scale: CurvedAnimation(
+                  parent: _ac, curve: const Interval(0, 0.28, curve: Curves.elasticOut)),
+              child: NeonPanel(
           padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 34),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
@@ -122,10 +141,72 @@ class _LevelUpOverlayState extends State<LevelUpOverlay>
                   size: 20, color: AppTheme.good),
             ),
           ]),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
+
+class _Confetto {
+  _Confetto(this.x, this.color, this.size, this.drift, this.rot, this.delay, this.fall);
+  final double x; // start x as fraction of width
+  final Color color;
+  final double size;
+  final double drift; // horizontal drift fraction
+  final double rot; // rotations over the animation
+  final double delay; // 0..0.3 start delay
+  final double fall; // fall speed factor
+
+  static final _r = Random();
+  static const _palette = [
+    AppTheme.neon,
+    AppTheme.good,
+    AppTheme.warning,
+    AppTheme.danger,
+    AppTheme.purpleGlow,
+    Colors.white,
+  ];
+
+  factory _Confetto.random() => _Confetto(
+        _r.nextDouble(),
+        _palette[_r.nextInt(_palette.length)],
+        6 + _r.nextDouble() * 8,
+        (_r.nextDouble() - 0.5) * 0.4,
+        (_r.nextDouble() - 0.5) * 8,
+        _r.nextDouble() * 0.3,
+        0.7 + _r.nextDouble() * 0.6,
+      );
+}
+
+class _ConfettiPainter extends CustomPainter {
+  _ConfettiPainter(this.pieces, this.t);
+  final List<_Confetto> pieces;
+  final double t;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final p in pieces) {
+      final local = ((t - p.delay) / (1 - p.delay)).clamp(0.0, 1.0);
+      if (local <= 0) continue;
+      final y = (-0.1 + local * p.fall * 1.2) * size.height;
+      final x = (p.x + p.drift * local) * size.width;
+      final fade = local > 0.85 ? (1 - (local - 0.85) / 0.15) : 1.0;
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.rotate(p.rot * local * 2 * pi);
+      canvas.drawRect(
+        Rect.fromCenter(center: Offset.zero, width: p.size, height: p.size * 0.6),
+        Paint()..color = p.color.withValues(alpha: fade.clamp(0.0, 1.0)),
+      );
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ConfettiPainter old) => old.t != t;
 }
 
 /// GAME OVER dialog.

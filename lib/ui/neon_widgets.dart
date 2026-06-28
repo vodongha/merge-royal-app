@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../audio/audio_controller.dart';
 import '../theme/app_theme.dart';
 
 /// A glowing pill button in the Merge Royal style.
@@ -35,6 +36,7 @@ class _NeonButtonState extends State<NeonButton> {
       onTapCancel: () => setState(() => _down = false),
       onTapUp: (_) {
         setState(() => _down = false);
+        AudioController.instance.tap();
         widget.onTap();
       },
       child: AnimatedScale(
@@ -88,7 +90,10 @@ class NeonIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        AudioController.instance.tap();
+        onTap();
+      },
       child: Container(
         width: size,
         height: size,

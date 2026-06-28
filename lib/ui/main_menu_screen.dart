@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../audio/audio_controller.dart';
 import '../game/game_controller.dart';
+import '../services/update_service.dart';
 import '../theme/app_theme.dart';
 import 'game_screen.dart';
 import 'neon_widgets.dart';
@@ -15,13 +17,15 @@ class MainMenuScreen extends StatefulWidget {
 
 class _MainMenuScreenState extends State<MainMenuScreen> {
   bool _hasSave = false;
-  bool _muted = false;
   bool _howTo = false;
 
   @override
   void initState() {
     super.initState();
     _refresh();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) UpdateService.checkForFlexibleUpdate(context);
+    });
   }
 
   Future<void> _refresh() async {
@@ -64,8 +68,13 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
               const Spacer(flex: 4),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 NeonIconButton(
-                  icon: _muted ? Icons.volume_off : Icons.volume_up,
-                  onTap: () => setState(() => _muted = !_muted),
+                  icon: AudioController.instance.muted.value
+                      ? Icons.volume_off
+                      : Icons.volume_up,
+                  onTap: () async {
+                    await AudioController.instance.toggleMute();
+                    if (mounted) setState(() {});
+                  },
                   color: const Color(0xFF3D7BFF),
                   filled: true,
                   size: 52,

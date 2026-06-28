@@ -6,9 +6,24 @@ multipliers, manage mistakes, and use bomb/shuffle power-ups.
 
 ## Stack
 - **Flutter 3.44 / Dart 3.12**, **Flame 1.37** (2D game engine).
+- `flame_audio` — SFX + looping music bed (assets synthesized as WAV, see below).
+- `in_app_update` — Google Play flexible/background updates.
 - `google_fonts` (Silkscreen / Baloo2 — fetched at runtime; consider bundling for offline).
-- `shared_preferences` for save/continue + best score.
+- `shared_preferences` for save/continue + best score + mute flag.
 - Targets: **android** (primary), ios, windows, web (bonus, builds clean).
+
+## Audio / effects / updates
+- `lib/audio/audio_controller.dart` — singleton; preloads SFX, plays `music.wav`
+  loop, persisted `muted` ValueNotifier shared by menu + pause. Hooked to game
+  events (merge/combo/bomb/shuffle/mistake/levelup/gameover) + button taps.
+- `assets/audio/*.wav` are **procedurally generated** (no licensed assets) by
+  `scratchpad/gen_audio.py` — re-run it to tweak the sounds.
+- Effects in `merge_royal_game.dart`: particle bursts on merge/bomb
+  (`ParticleSystemComponent`) + screen-shake (canvas translate in `render`).
+  Level-up **confetti** is a `CustomPainter` in `overlays.dart`.
+- `lib/services/update_service.dart` — checks Play for updates on launch and
+  runs a flexible (background-download) update, then a "Restart" snackbar.
+  Android-only; only fires for Play-installed builds (no-op on debug/sideload).
 
 ## Architecture
 All rules live in a plain `ChangeNotifier`; Flame only renders + routes input.
@@ -78,6 +93,7 @@ flutter build appbundle --release  # build AAB for Play Store
 
 ## TODO / next
 - Bundle the Google Fonts as assets (offline) instead of runtime fetch.
-- Sound effects + the mute toggle is currently a UI-only flag (no audio engine yet).
-- Particle bursts on merge; richer level-up confetti.
 - Android release signing (keystore) before Play upload.
+- Optional: bump bgm/sfx quality (current WAVs are simple synth tones).
+- Done: ✅ audio (SFX+music+mute) ✅ merge/bomb particles + shake ✅ level-up
+  confetti ✅ Play in-app (flexible) updates.

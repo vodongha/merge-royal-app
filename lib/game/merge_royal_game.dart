@@ -1,10 +1,16 @@
+import 'dart:math';
+
+import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flame/particles.dart';
 import 'package:flutter/material.dart';
 
+import '../audio/audio_controller.dart';
 import '../components/background_component.dart';
 import '../components/card_component.dart';
+import '../theme/app_theme.dart';
 import 'board_layout.dart';
 import 'game_controller.dart';
 
@@ -18,6 +24,11 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
 
   final Map<int, CardComponent> _cards = {};
   late BackgroundComponent _background;
+  final Random _rng = Random();
+
+  // Screen-shake state.
+  double _shake = 0;
+  final Vector2 _shakeOffset = Vector2.zero();
 
   // Drag session ------------------------------------------------------------
   int _dragFrom = -1;
@@ -36,6 +47,12 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
     add(_background);
     controller.addListener(_onControllerChanged);
     controller.onMerge = _onMerge;
+    controller.onBomb = _onBomb;
+    controller.onShuffle = () => AudioController.instance.shuffle();
+    controller.onMistake = () {
+      AudioController.instance.mistake();
+      _addShake(7);
+    };
     sync(animate: false);
   }
 
@@ -55,6 +72,66 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
   void _onControllerChanged() {
     if (isLoaded) sync();
   }
+
+  // ---- Juice: shake + particles ------------------------------------------
+  void _addShake(double amount) => _shake = min(16, _shake + amount);
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (_shake > 0) {
+      _shake = max(0, _shake - dt * 40);
+      _shakeOffset
+        ..setValues(_rng.nextDouble() * 2 - 1, _rng.nextDouble() * 2 - 1)
+        ..scale(_shake);
+    } else {
+      _shakeOffset.setZero();
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    canvas.save();
+    canvas.translate(_shakeOffset.x, _shakeOffset.y);
+    super.render(canvas);
+    canvas.restore();
+  }
+
+  void _burst(Vector2 center, List<Color> colors,
+      {int count = 16, double speed = 150, double radius = 4}) {
+    add(ParticleSystemComponent(
+      position: center,
+      priority: 3000,
+      particle: Particle.generate(
+        count: count,
+        lifespan: 0.62,
+        generator: (i) {
+          final angle = _rng.nextDouble() * 2 * pi;
+          final spd = speed * (0.35 + _rng.nextDouble());
+          final color = colors[_rng.nextInt(colors.length)];
+          final r = radius * (0.6 + _rng.nextDouble());
+          return AcceleratedParticle(
+            acceleration: Vector2(0, 420),
+            speed: Vector2(cos(angle), sin(angle)) * spd,
+            child: ComputedParticle(
+              renderer: (canvas, particle) {
+                canvas.drawCircle(
+                  Offset.zero,
+                  r * (1 - particle.progress * 0.5),
+                  Paint()..color = color.withValues(alpha: 1 - particle.progress),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    ));
+  }
+
+  Vector2 _columnCenter(int col) => Vector2(
+        layout.columnCenterX(col),
+        layout.boardTop + layout.cardHeight * 0.6,
+      );
 
   // ---- Sync model -> components ------------------------------------------
   void sync({bool animate = true}) {
@@ -102,7 +179,9 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
   }
 
   void _onMerge(MergeEvent event) {
-    // Pulse the surviving front card of the merged column.
+    AudioController.instance.merge(event.combo);
+    _addShake(2.5 + event.combo * 2.0);
+
     final cards = controller.columns[event.column];
     if (cards.isEmpty) return;
     final comp = _cards[cards.last.id];
@@ -110,6 +189,19 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
       ScaleEffect.to(Vector2.all(1.18), EffectController(duration: 0.08)),
       ScaleEffect.to(Vector2.all(1.0), EffectController(duration: 0.10)),
     ]));
+
+    final colors = AppTheme.cardGradient(event.value);
+    final accent = event.combo > 1 ? [AppTheme.warning, AppTheme.neon] : colors;
+    _burst(_columnCenter(event.column), [...colors, ...accent],
+        count: 12 + event.combo * 6, speed: 130 + event.combo * 30);
+  }
+
+  void _onBomb(int col) {
+    AudioController.instance.bomb();
+    _addShake(12);
+    _burst(_columnCenter(col),
+        const [Color(0xFFFF7A3D), Color(0xFFFFC400), Color(0xFFB71C1C), Colors.white],
+        count: 30, speed: 220, radius: 5);
   }
 
   // ---- Input --------------------------------------------------------------

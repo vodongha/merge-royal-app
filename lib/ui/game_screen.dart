@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
+import '../audio/audio_controller.dart';
 import '../game/game_controller.dart';
 import '../game/merge_royal_game.dart';
 import '../theme/app_theme.dart';
@@ -26,7 +27,6 @@ class _GameScreenState extends State<GameScreen> {
   bool _paused = false;
   bool _howTo = false;
   bool _gameOver = false;
-  bool _muted = false;
 
   _LevelUpInfo? _levelUp;
   String? _toast;
@@ -40,12 +40,14 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _init() async {
     controller.onLevelUp = (lvl) {
+      AudioController.instance.levelUp();
       setState(() => _levelUp = _LevelUpInfo(lvl, controller.totalScore));
       Future.delayed(const Duration(milliseconds: 1700), () {
         if (mounted) setState(() => _levelUp = null);
       });
     };
     controller.onGameOver = () {
+      AudioController.instance.gameOver();
       if (mounted) setState(() => _gameOver = true);
     };
     controller.onToast = _showToast;
@@ -56,6 +58,7 @@ class _GameScreenState extends State<GameScreen> {
     } else {
       await controller.startNewGame();
     }
+    await AudioController.instance.startMusic();
     if (mounted) setState(() => _ready = true);
   }
 
@@ -156,8 +159,11 @@ class _GameScreenState extends State<GameScreen> {
                 PauseDialog(
                   onResume: () => _setPaused(false),
                   onHome: _goHome,
-                  muted: _muted,
-                  onToggleSound: () => setState(() => _muted = !_muted),
+                  muted: AudioController.instance.muted.value,
+                  onToggleSound: () async {
+                    await AudioController.instance.toggleMute();
+                    if (mounted) setState(() {});
+                  },
                 ),
               if (_howTo)
                 HowToPlayDialog(onClose: () {

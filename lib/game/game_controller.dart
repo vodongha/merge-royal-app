@@ -51,6 +51,9 @@ class GameController extends ChangeNotifier {
   void Function(int level)? onLevelUp;
   VoidCallback? onGameOver;
   void Function(String message)? onToast;
+  void Function(int column)? onBomb;
+  VoidCallback? onShuffle;
+  VoidCallback? onMistake;
 
   int get levelTarget => 1000 + level * 900;
   double get levelProgress => (levelScore / levelTarget).clamp(0.0, 1.0);
@@ -267,6 +270,7 @@ class GameController extends ChangeNotifier {
 
   void _registerMistake() {
     mistakesLeft--;
+    onMistake?.call();
     onToast?.call('MISTAKE!');
     if (mistakesLeft <= 0) {
       mistakesLeft = 0;
@@ -310,6 +314,7 @@ class GameController extends ChangeNotifier {
     c.removeLast();
     bombs--;
     bombArmed = false;
+    onBomb?.call(col);
     onToast?.call('BOOM!');
     _checkGameOver();
     notifyListeners();
@@ -329,6 +334,7 @@ class GameController extends ChangeNotifier {
       columns[i % kColumnCount].add(all[i]);
     }
     shuffles--;
+    onShuffle?.call();
     onToast?.call('SHUFFLED');
     notifyListeners();
     save();
