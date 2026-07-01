@@ -37,8 +37,7 @@ class TopHud extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            _ScoreLine(
-                score: controller.levelScore, combo: controller.comboMultiplier),
+            _ScoreLine(score: controller.levelScore),
           ],
         );
       },
@@ -102,20 +101,12 @@ class _ProgressBar extends StatelessWidget {
 }
 
 class _ScoreLine extends StatelessWidget {
-  const _ScoreLine({required this.score, required this.combo});
+  const _ScoreLine({required this.score});
   final int score;
-  final int combo;
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      NeonText('$score', size: 34, color: Colors.white, letterSpacing: 2),
-      if (combo > 1)
-        Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: NeonText('X$combo', size: 22, color: AppTheme.warning),
-        ),
-    ]);
+    return NeonText('$score', size: 38, color: Colors.white, letterSpacing: 2);
   }
 }
 

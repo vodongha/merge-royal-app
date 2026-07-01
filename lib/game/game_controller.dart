@@ -54,8 +54,9 @@ class GameController extends ChangeNotifier {
   void Function(int column)? onBomb;
   VoidCallback? onShuffle;
   VoidCallback? onMistake;
+  void Function(int combo)? onCombo;
 
-  int get levelTarget => 1000 + level * 900;
+  int get levelTarget => 200 + level * 150;
   double get levelProgress => (levelScore / levelTarget).clamp(0.0, 1.0);
   bool get hasBomb => bombs > 0;
   bool get hasShuffle => shuffles > 0;
@@ -82,7 +83,9 @@ class GameController extends ChangeNotifier {
   }
 
   void _applyLevelTuning() {
-    draggableCount = 3 + min(2, level ~/ 4); // 3..5
+    // You can pick up any card in a column (touch it to take it plus everything
+    // below), so the cap is the column height itself.
+    draggableCount = kColumnCapacity;
   }
 
   /// Deal a fresh board with a few low cards per column.
@@ -93,16 +96,23 @@ class GameController extends ChangeNotifier {
     for (int col = 0; col < kColumnCount; col++) {
       final n = 2 + _rng.nextInt(2); // 2..3 cards
       for (int i = 0; i < n; i++) {
-        columns[col].add(_spawnCard(allowHazards: false));
+        final prev = columns[col].isEmpty ? null : columns[col].last;
+        columns[col].add(_spawnCard(
+            allowHazards: false, avoid: prev == null || prev.locked ? null : prev.value));
       }
     }
   }
 
-  CardData _spawnCard({bool allowHazards = true}) {
+  /// Generates a card. [avoid] is the value of the card it will sit next to —
+  /// the spawned value never matches it, so we never create two identical
+  /// adjacent cards that just sit there without merging.
+  CardData _spawnCard({bool allowHazards = true, int? avoid}) {
     // Base value grows slowly with level.
     final tier = min(4, 1 + level ~/ 3); // how many low values are in the bag
-    final choices = <int>[2, 4, 8, 16, 32];
-    final value = choices[_rng.nextInt(min(choices.length, 1 + tier))];
+    final pool = <int>[2, 4, 8, 16, 32].take(min(5, 1 + tier)).toList();
+    if (avoid != null) pool.removeWhere((v) => v == avoid);
+    if (pool.isEmpty) pool.add(avoid == 2 ? 4 : 2);
+    final value = pool[_rng.nextInt(pool.length)];
 
     if (allowHazards) {
       final lockChance = (0.04 + level * 0.012).clamp(0.0, 0.22);
@@ -126,21 +136,26 @@ class GameController extends ChangeNotifier {
   }
 
   // ---- Grabbing -----------------------------------------------------------
-  /// How many cards can be grabbed from the front of [col] as one group:
-  /// a contiguous run of equal, movable cards, capped by [draggableCount].
-  int grabbableCount(int col) {
+  /// Whether the front card of [col] can be picked up at all.
+  bool canGrab(int col) {
     final c = columns[col];
-    if (c.isEmpty) return 0;
-    final front = c.last;
-    if (front.locked) return 0; // locked cards can't be dragged
-    if (front.isSpecial) return 1; // specials move one at a time
-    int count = 1;
-    for (int i = c.length - 2; i >= 0 && count < draggableCount; i--) {
-      final card = c[i];
-      if (card.locked || card.isSpecial || card.value != front.value) break;
-      count++;
+    return c.isNotEmpty && !c.last.locked;
+  }
+
+  /// How many cards to pick up when the player grabs at [fromIndex] (the card
+  /// they touched, 0 = back/top of the stack). They take that card plus every
+  /// card below it toward the front, capped by [draggableCount]. The player
+  /// decides the amount by choosing where in the stack to grab. Locked cards
+  /// can't be carried, so the grab starts just below the deepest locked one.
+  int grabCount(int col, int fromIndex) {
+    final c = columns[col];
+    if (c.isEmpty || c.last.locked) return 0;
+    var start = fromIndex.clamp(0, c.length - 1);
+    if (start < c.length - draggableCount) start = c.length - draggableCount;
+    for (int k = start; k < c.length; k++) {
+      if (c[k].locked) start = k + 1;
     }
-    return count;
+    return c.length - start;
   }
 
   // ---- Moving -------------------------------------------------------------
@@ -154,33 +169,35 @@ class GameController extends ChangeNotifier {
     final dst = columns[to];
     final leading = src[src.length - groupSize]; // deepest card of the group
 
-    // Empty destination -> free relocation (respect capacity).
-    if (dst.isEmpty) {
-      if (groupSize > kColumnCapacity) return MoveResult.illegal;
-      _transfer(src, dst, groupSize);
-      _afterMove(to, merged: false);
-      return MoveResult.relocated;
-    }
-
-    final dstFront = dst.last;
-    final canMerge = !dstFront.locked &&
+    final willMerge = dst.isNotEmpty &&
+        !dst.last.locked &&
         !leading.locked &&
-        dstFront.value == leading.value;
+        dst.last.value == leading.value;
 
-    if (!canMerge) {
-      // Wrong drop -> a mistake.
+    // Non-merging placements must fit; merges shrink the pile so they're fine.
+    if (!willMerge && dst.length + groupSize > kColumnCapacity) {
       _registerMistake();
       return MoveResult.illegal;
     }
 
-    if (dst.length + groupSize > kColumnCapacity + 2) {
-      return MoveResult.illegal;
+    _transfer(src, dst, groupSize);
+
+    if (willMerge) {
+      _collapse(to);
+      _checkGameOver();
+      notifyListeners();
+      save();
+      return MoveResult.merged;
     }
 
-    _transfer(src, dst, groupSize);
-    final combo = _collapse(to);
-    _afterMove(to, merged: true, combo: combo);
-    return MoveResult.merged;
+    // Moving a card without merging costs no points but deals a fresh card to
+    // the top of every column (extra pressure).
+    comboMultiplier = 1;
+    _dealRowOnTop();
+    _checkGameOver();
+    notifyListeners();
+    save();
+    return MoveResult.relocated;
   }
 
   void _transfer(List<CardData> src, List<CardData> dst, int n) {
@@ -189,31 +206,37 @@ class GameController extends ChangeNotifier {
     dst.addAll(moved);
   }
 
-  /// Greedy front cascade: while the two front cards match, merge them.
-  /// Returns the combo length (number of merges performed).
+  /// Full cascade: repeatedly merge any adjacent equal pair in the column
+  /// until nothing matches, so runs and staircases resolve completely (no
+  /// leftover single cards). Returns the combo length (number of merges).
   int _collapse(int col) {
     final c = columns[col];
     int combo = 0;
-    while (c.length >= 2) {
-      final a = c[c.length - 1];
-      final b = c[c.length - 2];
-      if (a.locked || b.locked || a.value != b.value) break;
+    bool merged = true;
+    while (merged) {
+      merged = false;
+      for (int i = c.length - 1; i >= 1; i--) {
+        final a = c[i];
+        final b = c[i - 1];
+        if (a.locked || b.locked || a.value != b.value) continue;
 
-      // Consume both, keep the deeper card as the merged one.
-      c.removeLast();
-      b.value *= 2;
-      combo++;
+        // Merge a into b (keep the deeper card as the result).
+        c.removeAt(i);
+        b.value *= 2;
+        combo++;
 
-      _applySuitBonus(a);
-      _applySuitBonus(b);
-      b.suit = Suit.none; // merged result becomes a plain card
+        _applySuitBonus(a);
+        _applySuitBonus(b);
+        b.suit = Suit.none;
 
-      final gained = b.value * (combo); // later merges in a chain score more
-      _addScore(gained);
-
-      onMerge?.call(MergeEvent(col, b.value, combo, a.suit));
+        _addScore(b.value * (combo + 1)); // combos score more
+        onMerge?.call(MergeEvent(col, b.value, combo, a.suit));
+        merged = true;
+        break; // restart the scan
+      }
     }
     comboMultiplier = max(1, combo);
+    if (combo > 1) onCombo?.call(combo);
     return combo;
   }
 
@@ -261,13 +284,6 @@ class GameController extends ChangeNotifier {
     onLevelUp?.call(level);
   }
 
-  void _afterMove(int touchedCol, {required bool merged, int combo = 0}) {
-    _spawnAfterMove();
-    _checkGameOver();
-    notifyListeners();
-    save();
-  }
-
   void _registerMistake() {
     mistakesLeft--;
     onMistake?.call();
@@ -280,18 +296,14 @@ class GameController extends ChangeNotifier {
     save();
   }
 
-  void _spawnAfterMove() {
-    // Drop a new card into the emptiest column.
-    int target = -1;
-    int best = 1 << 30;
+  /// Deals a fresh card to the TOP of every column (including empty slots) that
+  /// still has room. No scoring — this is the cost of a non-merging move.
+  void _dealRowOnTop() {
     for (int i = 0; i < kColumnCount; i++) {
-      if (columns[i].length < best) {
-        best = columns[i].length;
-        target = i;
-      }
-    }
-    if (target >= 0 && columns[target].length < kColumnCapacity) {
-      columns[target].add(_spawnCard());
+      if (columns[i].length >= kColumnCapacity) continue;
+      final top = columns[i].isEmpty ? null : columns[i].first;
+      columns[i].insert(
+          0, _spawnCard(avoid: top == null || top.locked ? null : top.value));
     }
   }
 

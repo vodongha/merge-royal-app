@@ -15,6 +15,10 @@ class BackgroundComponent extends PositionComponent {
   final BoardLayout layout;
   final GameController controller;
 
+  /// Column currently being fully dragged out — its teal slot shows live while
+  /// the last cards are still lifted in the player's hand.
+  int emptyingColumn = -1;
+
   @override
   int get priority => -10;
 
@@ -52,25 +56,38 @@ class BackgroundComponent extends PositionComponent {
     }
   }
 
+  /// A glowing teal "waiting" slot shown wherever a column has been emptied,
+  /// so the player always sees where a new pile can go.
   void _drawEmptySlots(ui.Canvas canvas) {
     for (int col = 0; col < kColumnCount; col++) {
-      if (controller.columns[col].isNotEmpty) continue;
+      if (controller.columns[col].isNotEmpty && col != emptyingColumn) continue;
       final rect = Rect.fromLTWH(
           layout.cardX(col), layout.boardTop, layout.cardWidth, layout.cardHeight);
       final rrect = RRect.fromRectAndRadius(
-          rect, Radius.circular(layout.cardWidth * 0.12));
+          rect, Radius.circular(layout.cardWidth * 0.14));
+      // Outer glow.
+      canvas.drawRRect(
+          rrect.inflate(2),
+          Paint()
+            ..color = AppTheme.neon.withValues(alpha: 0.45)
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14));
+      // Solid teal fill with a soft vertical gradient.
       canvas.drawRRect(
           rrect,
           Paint()
-            ..color = AppTheme.neon.withValues(alpha: 0.16)
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10));
-      canvas.drawRRect(rrect, Paint()..color = AppTheme.neon.withValues(alpha: 0.10));
+            ..shader = ui.Gradient.linear(rect.topCenter, rect.bottomCenter, [
+              AppTheme.neon.withValues(alpha: 0.85),
+              AppTheme.neonDeep.withValues(alpha: 0.85),
+            ]));
+      // Top sheen.
+      canvas.save();
+      canvas.clipRRect(rrect);
       canvas.drawRRect(
-          rrect,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2
-            ..color = AppTheme.neon.withValues(alpha: 0.5));
+          RRect.fromRectAndRadius(
+              Rect.fromLTWH(rect.left, rect.top, rect.width, rect.height * 0.4),
+              Radius.circular(layout.cardWidth * 0.14)),
+          Paint()..color = Colors.white.withValues(alpha: 0.22));
+      canvas.restore();
     }
   }
 

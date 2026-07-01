@@ -16,17 +16,17 @@ class AppTheme {
   static const Color purpleGlow = Color(0xFF8B7DFF);
 
   // Fonts -------------------------------------------------------------------
-  /// Blocky arcade font used for titles & big numbers (close to the mock).
-  /// Bundled offline (no network needed) — see pubspec `fonts:`.
+  /// Bold rounded display font for titles, scores and card numbers.
+  /// Fredoka — bundled offline (see pubspec `fonts:`).
   static TextStyle arcade({
     double size = 24,
     Color color = Colors.white,
-    FontWeight weight = FontWeight.w400,
-    double letterSpacing = 1.5,
+    FontWeight weight = FontWeight.w700,
+    double letterSpacing = 0.5,
     List<Shadow>? shadows,
   }) {
     return TextStyle(
-      fontFamily: 'Silkscreen',
+      fontFamily: 'Fredoka',
       fontSize: size,
       color: color,
       fontWeight: weight,
@@ -35,15 +35,15 @@ class AppTheme {
     );
   }
 
-  /// Softer rounded font for body copy. Bundled offline.
+  /// Slightly lighter Fredoka for body copy. Bundled offline.
   static TextStyle body({
     double size = 16,
     Color color = Colors.white,
     FontWeight weight = FontWeight.w600,
-    double letterSpacing = 0.5,
+    double letterSpacing = 0.2,
   }) {
     return TextStyle(
-      fontFamily: 'Baloo2',
+      fontFamily: 'Fredoka',
       fontSize: size,
       color: color,
       fontWeight: weight,

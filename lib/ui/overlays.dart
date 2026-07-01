@@ -209,6 +209,76 @@ class _ConfettiPainter extends CustomPainter {
   bool shouldRepaint(_ConfettiPainter old) => old.t != t;
 }
 
+/// Big centre combo flash (×2, ×3 …) that pops in then fades away.
+class ComboPopup extends StatefulWidget {
+  const ComboPopup({super.key, required this.combo, required this.onDone});
+  final int combo;
+  final VoidCallback onDone;
+
+  @override
+  State<ComboPopup> createState() => _ComboPopupState();
+}
+
+class _ComboPopupState extends State<ComboPopup>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ac = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 850))
+    ..forward();
+
+  @override
+  void initState() {
+    super.initState();
+    _ac.addStatusListener((s) {
+      if (s == AnimationStatus.completed) widget.onDone();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ac.dispose();
+    super.dispose();
+  }
+
+  Color get _color => widget.combo >= 4
+      ? AppTheme.danger
+      : (widget.combo == 3 ? AppTheme.purpleGlow : AppTheme.warning);
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Center(
+          child: AnimatedBuilder(
+            animation: _ac,
+            builder: (context, _) {
+              final t = _ac.value;
+              final scale = t < 0.35
+                  ? Curves.elasticOut.transform(t / 0.35)
+                  : 1.0 + (t - 0.35) / 0.65 * 0.5;
+              final opacity = t < 0.65 ? 1.0 : (1 - (t - 0.65) / 0.35);
+              return Opacity(
+                opacity: opacity.clamp(0.0, 1.0),
+                child: Transform.scale(
+                  scale: scale.clamp(0.0, 2.0),
+                  child: Text(
+                    '×${widget.combo}',
+                    style: AppTheme.arcade(
+                      size: 110,
+                      color: _color,
+                      weight: FontWeight.w700,
+                      shadows: AppTheme.textGlow(_color, blur: 28),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// GAME OVER dialog.
 class GameOverDialog extends StatelessWidget {
   const GameOverDialog({
@@ -281,28 +351,35 @@ class HowToPlayDialog extends StatelessWidget {
                 NeonIconButton(icon: Icons.close, onTap: onClose, size: 50),
               ]),
               const SizedBox(height: 20),
-              _section(
-                icon: Icons.gps_fixed,
-                title: 'OBJECTIVE',
-                body: 'Merge cards with the same number and score as high as possible!',
-              ),
-              const SizedBox(height: 16),
-              _section(
-                icon: Icons.touch_app,
-                title: 'CONTROLS',
-                body: 'DRAG a card from the front of a column and DROP it onto a matching card to MERGE. Build staircases (2,4,8…) for combo multipliers.',
-              ),
-              const SizedBox(height: 16),
-              _section(
-                icon: Icons.bolt,
-                title: 'POWER-UPS & CARDS',
-                body: 'Suit cards (♠♥♣♦♛) give bonus score, mistakes, bombs or shuffles. 🚫 locked cards block a column — blow them up with a BOMB. SHUFFLE rearranges the board.',
-              ),
-              const SizedBox(height: 16),
-              _section(
-                icon: Icons.warning_amber,
-                title: 'MISTAKES',
-                body: 'A wrong drop costs one of your MISTAKES LEFT (bottom-left). DRAGGABLE AT A TIME (bottom-right) is how many cards you can grab at once.',
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(children: [
+                    _section(
+                      icon: Icons.gps_fixed,
+                      title: 'OBJECTIVE',
+                      body: 'Merge cards with the same number and score as high as possible!',
+                    ),
+                    const SizedBox(height: 16),
+                    _section(
+                      icon: Icons.touch_app,
+                      title: 'CONTROLS',
+                      body: 'Touch a column and drag its front card onto a matching card to MERGE. Build staircases (2,4,8…) to trigger big combo chains.',
+                    ),
+                    const SizedBox(height: 16),
+                    _section(
+                      icon: Icons.bolt,
+                      title: 'POWER-UPS & CARDS',
+                      body: 'Suit cards (♠♥♣♦♛) give bonus score, mistakes, bombs or shuffles. 🚫 locked cards block a column — blow them up with a BOMB. SHUFFLE rearranges the board.',
+                    ),
+                    const SizedBox(height: 16),
+                    _section(
+                      icon: Icons.warning_amber,
+                      title: 'MISTAKES',
+                      body: 'A wrong drop costs one of your MISTAKES LEFT (bottom-left). DRAGGABLE AT A TIME (bottom-right) is how many cards you can grab at once.',
+                    ),
+                    const SizedBox(height: 20),
+                  ]),
+                ),
               ),
             ]),
           ),
