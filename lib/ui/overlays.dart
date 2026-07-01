@@ -281,28 +281,35 @@ class HowToPlayDialog extends StatelessWidget {
                 NeonIconButton(icon: Icons.close, onTap: onClose, size: 50),
               ]),
               const SizedBox(height: 20),
-              _section(
-                icon: Icons.gps_fixed,
-                title: 'OBJECTIVE',
-                body: 'Merge cards with the same number and score as high as possible!',
-              ),
-              const SizedBox(height: 16),
-              _section(
-                icon: Icons.touch_app,
-                title: 'CONTROLS',
-                body: 'DRAG a card from the front of a column and DROP it onto a matching card to MERGE. Build staircases (2,4,8…) for combo multipliers.',
-              ),
-              const SizedBox(height: 16),
-              _section(
-                icon: Icons.bolt,
-                title: 'POWER-UPS & CARDS',
-                body: 'Suit cards (♠♥♣♦♛) give bonus score, mistakes, bombs or shuffles. 🚫 locked cards block a column — blow them up with a BOMB. SHUFFLE rearranges the board.',
-              ),
-              const SizedBox(height: 16),
-              _section(
-                icon: Icons.warning_amber,
-                title: 'MISTAKES',
-                body: 'A wrong drop costs one of your MISTAKES LEFT (bottom-left). DRAGGABLE AT A TIME (bottom-right) is how many cards you can grab at once.',
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(children: [
+                    _section(
+                      icon: Icons.gps_fixed,
+                      title: 'OBJECTIVE',
+                      body: 'Merge cards with the same number and score as high as possible!',
+                    ),
+                    const SizedBox(height: 16),
+                    _section(
+                      icon: Icons.touch_app,
+                      title: 'CONTROLS',
+                      body: 'Touch a column and drag its front card onto a matching card to MERGE. Build staircases (2,4,8…) to trigger big combo chains.',
+                    ),
+                    const SizedBox(height: 16),
+                    _section(
+                      icon: Icons.bolt,
+                      title: 'POWER-UPS & CARDS',
+                      body: 'Suit cards (♠♥♣♦♛) give bonus score, mistakes, bombs or shuffles. 🚫 locked cards block a column — blow them up with a BOMB. SHUFFLE rearranges the board.',
+                    ),
+                    const SizedBox(height: 16),
+                    _section(
+                      icon: Icons.warning_amber,
+                      title: 'MISTAKES',
+                      body: 'A wrong drop costs one of your MISTAKES LEFT (bottom-left). DRAGGABLE AT A TIME (bottom-right) is how many cards you can grab at once.',
+                    ),
+                    const SizedBox(height: 20),
+                  ]),
+                ),
               ),
             ]),
           ),

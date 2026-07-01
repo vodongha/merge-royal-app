@@ -15,12 +15,27 @@ void main() {
     expect(c.columns[1].last.value, 4);
   });
 
-  test('a wrong drop costs a mistake', () {
+  test('a non-merging move relocates and adds a card, without a mistake', () {
     final c = GameController();
     c.mistakesLeft = 5;
     c.columns[0].add(CardData(value: 2));
     c.columns[1].add(CardData(value: 8));
 
+    final result = c.moveGroup(0, 1, 1);
+
+    expect(result, MoveResult.relocated);
+    expect(c.mistakesLeft, 5); // no penalty
+    expect(c.columns[1].last.value, 2); // the 2 moved onto column 1's front
+  });
+
+  test('overflowing a full column costs a mistake', () {
+    final c = GameController();
+    c.mistakesLeft = 5;
+    c.columns[0].add(CardData(value: 2));
+    // Fill column 1 to capacity with non-mergeable, non-matching values.
+    for (int i = 0; i < kColumnCapacity; i++) {
+      c.columns[1].add(CardData(value: i.isEven ? 8 : 16));
+    }
     final result = c.moveGroup(0, 1, 1);
 
     expect(result, MoveResult.illegal);

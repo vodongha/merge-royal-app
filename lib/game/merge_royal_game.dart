@@ -165,14 +165,15 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
       }
     }
 
-    // Remove cards that left the board (merged / bombed).
+    // Remove cards that left the board (merged / bombed): quick shrink in place.
     final gone = _cards.keys.where((id) => !live.contains(id)).toList();
     for (final id in gone) {
       final comp = _cards.remove(id);
       if (comp == null) continue;
+      comp.priority = 5000;
       comp.add(ScaleEffect.to(
         Vector2.zero(),
-        EffectController(duration: 0.14, curve: Curves.easeIn),
+        EffectController(duration: 0.12, curve: Curves.easeIn),
         onComplete: comp.removeFromParent,
       ));
     }
@@ -185,9 +186,13 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
     final cards = controller.columns[event.column];
     if (cards.isEmpty) return;
     final comp = _cards[cards.last.id];
+    // Survivor grows to show the value leveling up, then settles. Curves stay
+    // monotonic so the card never dips below its normal size.
     comp?.add(SequenceEffect([
-      ScaleEffect.to(Vector2.all(1.18), EffectController(duration: 0.08)),
-      ScaleEffect.to(Vector2.all(1.0), EffectController(duration: 0.10)),
+      ScaleEffect.to(Vector2.all(1.28),
+          EffectController(duration: 0.10, curve: Curves.easeOut)),
+      ScaleEffect.to(Vector2.all(1.0),
+          EffectController(duration: 0.14, curve: Curves.easeInOut)),
     ]));
 
     final colors = AppTheme.cardGradient(event.value);
@@ -210,8 +215,7 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
     if (controller.gameOver || controller.isPaused) return;
     final p = event.localPosition;
     if (controller.bombArmed) {
-      final col = _columnUnderFront(p) ?? layout.columnAt(p.x);
-      controller.detonate(col);
+      controller.detonate(layout.columnAt(p.x));
     }
   }
 
@@ -222,13 +226,22 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
       return;
     }
     final p = event.localPosition;
-    final col = _columnUnderFront(p);
+    final col = _grabColumnAt(p);
     if (col == null) return;
-    final group = controller.grabbableCount(col);
+    // The card the player touched (0 = back). They take that card plus
+    // everything below it toward the front — so they decide how many.
+    final len = controller.columns[col].length;
+    final touched =
+        ((p.y - layout.boardTop) / layout.stripOffset).floor().clamp(0, len - 1);
+    final group = controller.grabCount(col, touched);
     if (group <= 0) return;
 
     _dragFrom = col;
     _dragGroup = group;
+    // If the whole column is leaving, reveal its waiting slot immediately.
+    if (group >= controller.columns[col].length) {
+      _background.emptyingColumn = col;
+    }
     _dragPos = p.clone();
     _dragged.clear();
     final cards = controller.columns[col];
@@ -280,6 +293,7 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
     _dragFrom = -1;
     _dragGroup = 0;
     _hoverCol = -1;
+    _background.emptyingColumn = -1;
     _clearHighlights();
 
     final result = controller.moveGroup(from, target, group);
@@ -304,17 +318,15 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
     }
   }
 
-  /// Returns the column whose front card is under [p], or null.
-  int? _columnUnderFront(Vector2 p) {
-    for (int col = 0; col < kColumnCount; col++) {
-      final cards = controller.columns[col];
-      if (cards.isEmpty) continue;
-      final comp = _cards[cards.last.id];
-      if (comp == null) continue;
-      final r = Rect.fromLTWH(
-          comp.position.x, comp.position.y, comp.size.x, comp.size.y);
-      if (r.contains(Offset(p.x, p.y))) return col;
-    }
-    return null;
+  /// Column the player is grabbing from. Anywhere within the column's
+  /// vertical band counts, so the whole column is a generous hit target
+  /// (no more dead zones between overlapping cards).
+  int? _grabColumnAt(Vector2 p) {
+    final top = layout.boardTop - layout.cardHeight * 0.5;
+    final bottom = layout.boardBottom + layout.cardHeight * 0.6;
+    if (p.y < top || p.y > bottom) return null;
+    final col = layout.columnAt(p.x);
+    if (!controller.canGrab(col)) return null;
+    return col;
   }
 }

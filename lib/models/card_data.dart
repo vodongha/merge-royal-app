@@ -67,6 +67,42 @@ class CardData {
 
   bool get isSpecial => suit != Suit.none;
 
+  /// Big centre emblem, playing-card style. Special cards show their suit;
+  /// normal cards get a value-themed emoji so every card has a symbol.
+  String get centerSymbol {
+    if (suit != Suit.none) return suit.glyph;
+    switch (value) {
+      case 2:
+        return '💧';
+      case 4:
+        return '🍀';
+      case 8:
+        return '⚡';
+      case 16:
+        return '🔥';
+      case 32:
+        return '🌟';
+      case 64:
+        return '💎';
+      case 128:
+        return '🎯';
+      case 256:
+        return '🌙';
+      case 512:
+        return '🚀';
+      case 1024:
+        return '👑';
+      case 2048:
+        return '🏆';
+      default:
+        return '🌈';
+    }
+  }
+
+  /// True when [centerSymbol] is a colour emoji (renders with its own colours)
+  /// rather than a monochrome suit glyph that we tint.
+  bool get symbolIsEmoji => suit == Suit.none;
+
   /// Short label shown on the card face (e.g. 4096 -> "4,1K").
   String get label {
     if (locked) return '';

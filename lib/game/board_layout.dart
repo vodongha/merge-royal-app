@@ -18,15 +18,18 @@ class BoardLayout {
 
   void update(Vector2 size) {
     gameSize = size;
-    leftPad = size.x * 0.035;
+    leftPad = size.x * 0.03;
     final usable = size.x - leftPad * 2;
     slotWidth = usable / kColumnCount;
-    cardWidth = slotWidth * 0.84;
-    cardHeight = cardWidth * 1.42;
-    stripOffset = cardHeight * 0.17;
-    boardTop = size.y * 0.225;
-    boardBottom = size.y * 0.72;
-    progressBarY = boardTop - cardHeight * 0.12;
+    cardWidth = slotWidth * 0.92;
+    cardHeight = cardWidth * 1.5;
+    // Compact peek: just enough to read each value's strip, without wasting
+    // vertical space between stacked cards.
+    stripOffset = cardHeight * 0.19;
+    // Start below the score HUD so nothing overlaps it.
+    boardTop = size.y * 0.275;
+    boardBottom = size.y * 0.74;
+    progressBarY = boardTop - cardHeight * 0.1;
   }
 
   /// Center x of a column.

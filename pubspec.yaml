@@ -79,14 +79,12 @@ flutter:
     - assets/audio/
 
   fonts:
-    - family: Silkscreen
+    - family: Fredoka
       fonts:
-        - asset: assets/fonts/Silkscreen-Regular.ttf
-        - asset: assets/fonts/Silkscreen-Bold.ttf
+        - asset: assets/fonts/Fredoka-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Fredoka-Bold.ttf
           weight: 700
-    - family: Baloo2
-      fonts:
-        - asset: assets/fonts/Baloo2-Variable.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:
