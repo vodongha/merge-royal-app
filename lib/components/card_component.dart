@@ -98,16 +98,27 @@ class CardComponent extends PositionComponent {
 
   void _drawEmblem(ui.Canvas canvas, Rect rect) {
     final c = Offset(rect.center.dx, rect.center.dy + size.y * 0.03);
-    // Bonus (special) cards get a gold halo so they stand out.
+    // Bonus (special) cards get a soft amber halo — a warm radial gradient that
+    // glows from a bright gold core and fades smoothly to transparent, so the
+    // emblem sits in a soft pool of light rather than a hard disc.
     if (data.isSpecial) {
+      final glowR = size.x * 0.46;
       canvas.drawCircle(
-          c,
-          size.x * 0.36,
-          Paint()
-            ..color = const Color(0xFFFFC64B).withValues(alpha: 0.85)
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12));
-      canvas.drawCircle(
-          c, size.x * 0.31, Paint()..color = Colors.white.withValues(alpha: 0.55));
+        c,
+        glowR,
+        Paint()
+          ..shader = ui.Gradient.radial(
+            c,
+            glowR,
+            const [
+              Color(0xFFFFF3D0), // bright warm-gold core
+              Color(0xFFFFDE95), // amber
+              Color(0xFFF3BE55), // deeper amber
+              Color(0x00F3BE55), // fade out to transparent
+            ],
+            const [0.0, 0.42, 0.7, 1.0],
+          ),
+      );
     }
     final tp = TextPainter(
       text: TextSpan(

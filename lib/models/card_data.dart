@@ -67,28 +67,35 @@ class CardData {
 
   bool get isSpecial => suit != Suit.none;
 
-  static const List<String> _valueSuits = ['♠', '♥', '♣', '♦'];
+  // Escalating emblems — "Merge Royal": card suits for the low cards, a star
+  // and a gem for the mid cards, then chess royalty (pawn → king) for the big
+  // ones, each with its own colour so high values feel distinct and prestigious.
+  static const Map<int, String> _emblem = {
+    2: '♠', 4: '♥', 8: '♣', 16: '♦',
+    32: '★', 64: '✦',
+    128: '♟', 256: '♞', 512: '♝', 1024: '♜', 2048: '♛', 4096: '♚',
+  };
+  static const Map<int, int> _emblemColor = {
+    2: 0xFF1B2432, 4: 0xFFD8324B, 8: 0xFF1B2432, 16: 0xFFD8324B,
+    32: 0xFFF0A020, 64: 0xFF17A594,
+    128: 0xFF3D7BD6, 256: 0xFF6B53D8, 512: 0xFF9A3FD0,
+    1024: 0xFFD0562A, 2048: 0xFFE0327A, 4096: 0xFFF0B429,
+  };
 
-  /// Big centre suit, like a real playing card. Special cards show their bonus
-  /// suit; normal cards cycle ♠♥♣♦ by value so adjacent values differ.
-  String get centerSymbol {
-    if (suit != Suit.none) return suit.glyph;
-    final idx = (value.bitLength - 2) % 4; // 2->0, 4->1, 8->2, 16->3, 32->0…
-    return _valueSuits[idx < 0 ? 0 : idx];
-  }
+  /// Big centre emblem. Special cards show their bonus suit; normal cards use
+  /// the escalating emblem set above (very high values fall back to the king).
+  String get centerSymbol =>
+      suit != Suit.none ? suit.glyph : (_emblem[value] ?? '♚');
 
-  /// Traditional card colouring: hearts/diamonds red, spades/clubs black,
-  /// crown pink.
+  /// Colour of the centre emblem.
   Color get symbolColor {
-    switch (centerSymbol) {
-      case '♥':
-      case '♦':
-        return const Color(0xFFD8324B);
-      case '♛':
-        return const Color(0xFFE0467A);
-      default:
-        return const Color(0xFF1B2432);
+    // Bonus cards share a warm amber tone to match their golden halo.
+    if (suit != Suit.none) {
+      return suit == Suit.crown
+          ? const Color(0xFFCE8B12)
+          : const Color(0xFFC87E1C);
     }
+    return Color(_emblemColor[value] ?? 0xFFF0B429);
   }
 
   /// Short label shown on the card face (e.g. 4096 -> "4,1K").
