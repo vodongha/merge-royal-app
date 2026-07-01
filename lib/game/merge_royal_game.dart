@@ -156,6 +156,8 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
         comp.isFront = isFront;
         comp.priority = i;
         comp.highlight = false;
+        comp.scale = Vector2.all(1); // clear any leftover animation scale
+
         if (animate) {
           comp.add(MoveToEffect(
               targetPos, EffectController(duration: 0.16, curve: Curves.easeOut)));

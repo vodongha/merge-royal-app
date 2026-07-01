@@ -26,6 +26,8 @@ void main() {
     expect(result, MoveResult.relocated);
     expect(c.mistakesLeft, 5); // no penalty
     expect(c.columns[1].last.value, 2); // the 2 moved onto column 1's front
+    // A non-merging move deals a fresh card to the top of every column.
+    expect(c.columns.every((col) => col.isNotEmpty), true);
   });
 
   test('overflowing a full column costs a mistake', () {

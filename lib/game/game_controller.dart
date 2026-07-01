@@ -82,7 +82,9 @@ class GameController extends ChangeNotifier {
   }
 
   void _applyLevelTuning() {
-    draggableCount = 3 + min(2, level ~/ 4); // 3..5
+    // You can pick up any card in a column (touch it to take it plus everything
+    // below), so the cap is the column height itself.
+    draggableCount = kColumnCapacity;
   }
 
   /// Deal a fresh board with a few low cards per column.
@@ -187,10 +189,10 @@ class GameController extends ChangeNotifier {
       return MoveResult.merged;
     }
 
-    // Moving a card without merging costs no points but adds a fresh card on
-    // top of the board (extra pressure).
+    // Moving a card without merging costs no points but deals a fresh card to
+    // the top of every column (extra pressure).
     comboMultiplier = 1;
-    _spawnOnTop();
+    _dealRowOnTop();
     _checkGameOver();
     notifyListeners();
     save();
@@ -292,18 +294,15 @@ class GameController extends ChangeNotifier {
     save();
   }
 
-  /// Adds a fresh card to the TOP of a random non-empty column. Emptied
-  /// columns stay as waiting slots. No scoring — this is the cost of a
-  /// non-merging move.
-  void _spawnOnTop() {
-    final candidates = <int>[
-      for (int i = 0; i < kColumnCount; i++)
-        if (columns[i].isNotEmpty && columns[i].length < kColumnCapacity) i,
-    ];
-    if (candidates.isEmpty) return;
-    final target = candidates[_rng.nextInt(candidates.length)];
-    final top = columns[target].first;
-    columns[target].insert(0, _spawnCard(avoid: top.locked ? null : top.value));
+  /// Deals a fresh card to the TOP of every column (including empty slots) that
+  /// still has room. No scoring — this is the cost of a non-merging move.
+  void _dealRowOnTop() {
+    for (int i = 0; i < kColumnCount; i++) {
+      if (columns[i].length >= kColumnCapacity) continue;
+      final top = columns[i].isEmpty ? null : columns[i].first;
+      columns[i].insert(
+          0, _spawnCard(avoid: top == null || top.locked ? null : top.value));
+    }
   }
 
   // ---- Power-ups ----------------------------------------------------------

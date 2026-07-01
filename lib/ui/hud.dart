@@ -108,14 +108,18 @@ class _ScoreLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      NeonText('$score', size: 34, color: Colors.white, letterSpacing: 2),
-      if (combo > 1)
-        Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: NeonText('X$combo', size: 22, color: AppTheme.warning),
-        ),
-    ]);
+    // Score and combo share one line so the combo never overlaps the board.
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        NeonText('$score', size: 36, color: Colors.white, letterSpacing: 2),
+        if (combo > 1) ...[
+          const SizedBox(width: 12),
+          NeonText('×$combo', size: 26, color: AppTheme.warning),
+        ],
+      ],
+    );
   }
 }
 
