@@ -31,6 +31,8 @@ class _GameScreenState extends State<GameScreen> {
   _LevelUpInfo? _levelUp;
   String? _toast;
   Timer? _toastTimer;
+  int? _combo;
+  int _comboSeq = 0;
 
   @override
   void initState() {
@@ -51,6 +53,14 @@ class _GameScreenState extends State<GameScreen> {
       if (mounted) setState(() => _gameOver = true);
     };
     controller.onToast = _showToast;
+    controller.onCombo = (n) {
+      if (mounted) {
+        setState(() {
+          _combo = n;
+          _comboSeq++;
+        });
+      }
+    };
 
     if (widget.continueGame) {
       final ok = await controller.loadSave();
@@ -152,6 +162,14 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ),
               ),
+              if (_combo != null)
+                ComboPopup(
+                  key: ValueKey(_comboSeq),
+                  combo: _combo!,
+                  onDone: () {
+                    if (mounted) setState(() => _combo = null);
+                  },
+                ),
               if (_toast != null) _ToastBanner(message: _toast!),
               if (_levelUp != null)
                 LevelUpOverlay(level: _levelUp!.level, points: _levelUp!.points),

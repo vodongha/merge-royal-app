@@ -54,6 +54,7 @@ class GameController extends ChangeNotifier {
   void Function(int column)? onBomb;
   VoidCallback? onShuffle;
   VoidCallback? onMistake;
+  void Function(int combo)? onCombo;
 
   int get levelTarget => 200 + level * 150;
   double get levelProgress => (levelScore / levelTarget).clamp(0.0, 1.0);
@@ -235,6 +236,7 @@ class GameController extends ChangeNotifier {
       }
     }
     comboMultiplier = max(1, combo);
+    if (combo > 1) onCombo?.call(combo);
     return combo;
   }
 

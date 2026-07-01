@@ -67,41 +67,29 @@ class CardData {
 
   bool get isSpecial => suit != Suit.none;
 
-  /// Big centre emblem, playing-card style. Special cards show their suit;
-  /// normal cards get a value-themed emoji so every card has a symbol.
+  static const List<String> _valueSuits = ['♠', '♥', '♣', '♦'];
+
+  /// Big centre suit, like a real playing card. Special cards show their bonus
+  /// suit; normal cards cycle ♠♥♣♦ by value so adjacent values differ.
   String get centerSymbol {
     if (suit != Suit.none) return suit.glyph;
-    switch (value) {
-      case 2:
-        return '💧';
-      case 4:
-        return '🍀';
-      case 8:
-        return '⚡';
-      case 16:
-        return '🔥';
-      case 32:
-        return '🌟';
-      case 64:
-        return '💎';
-      case 128:
-        return '🎯';
-      case 256:
-        return '🌙';
-      case 512:
-        return '🚀';
-      case 1024:
-        return '👑';
-      case 2048:
-        return '🏆';
-      default:
-        return '🌈';
-    }
+    final idx = (value.bitLength - 2) % 4; // 2->0, 4->1, 8->2, 16->3, 32->0…
+    return _valueSuits[idx < 0 ? 0 : idx];
   }
 
-  /// True when [centerSymbol] is a colour emoji (renders with its own colours)
-  /// rather than a monochrome suit glyph that we tint.
-  bool get symbolIsEmoji => suit == Suit.none;
+  /// Traditional card colouring: hearts/diamonds red, spades/clubs black,
+  /// crown pink.
+  Color get symbolColor {
+    switch (centerSymbol) {
+      case '♥':
+      case '♦':
+        return const Color(0xFFD8324B);
+      case '♛':
+        return const Color(0xFFE0467A);
+      default:
+        return const Color(0xFF1B2432);
+    }
+  }
 
   /// Short label shown on the card face (e.g. 4096 -> "4,1K").
   String get label {

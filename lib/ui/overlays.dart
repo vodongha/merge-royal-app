@@ -209,6 +209,76 @@ class _ConfettiPainter extends CustomPainter {
   bool shouldRepaint(_ConfettiPainter old) => old.t != t;
 }
 
+/// Big centre combo flash (×2, ×3 …) that pops in then fades away.
+class ComboPopup extends StatefulWidget {
+  const ComboPopup({super.key, required this.combo, required this.onDone});
+  final int combo;
+  final VoidCallback onDone;
+
+  @override
+  State<ComboPopup> createState() => _ComboPopupState();
+}
+
+class _ComboPopupState extends State<ComboPopup>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ac = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 850))
+    ..forward();
+
+  @override
+  void initState() {
+    super.initState();
+    _ac.addStatusListener((s) {
+      if (s == AnimationStatus.completed) widget.onDone();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ac.dispose();
+    super.dispose();
+  }
+
+  Color get _color => widget.combo >= 4
+      ? AppTheme.danger
+      : (widget.combo == 3 ? AppTheme.purpleGlow : AppTheme.warning);
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Center(
+          child: AnimatedBuilder(
+            animation: _ac,
+            builder: (context, _) {
+              final t = _ac.value;
+              final scale = t < 0.35
+                  ? Curves.elasticOut.transform(t / 0.35)
+                  : 1.0 + (t - 0.35) / 0.65 * 0.5;
+              final opacity = t < 0.65 ? 1.0 : (1 - (t - 0.65) / 0.35);
+              return Opacity(
+                opacity: opacity.clamp(0.0, 1.0),
+                child: Transform.scale(
+                  scale: scale.clamp(0.0, 2.0),
+                  child: Text(
+                    '×${widget.combo}',
+                    style: AppTheme.arcade(
+                      size: 110,
+                      color: _color,
+                      weight: FontWeight.w700,
+                      shadows: AppTheme.textGlow(_color, blur: 28),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// GAME OVER dialog.
 class GameOverDialog extends StatelessWidget {
   const GameOverDialog({

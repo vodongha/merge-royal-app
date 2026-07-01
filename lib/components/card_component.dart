@@ -98,13 +98,21 @@ class CardComponent extends PositionComponent {
 
   void _drawEmblem(ui.Canvas canvas, Rect rect) {
     final c = Offset(rect.center.dx, rect.center.dy + size.y * 0.03);
+    // Bonus (special) cards get a gold halo so they stand out.
+    if (data.isSpecial) {
+      canvas.drawCircle(
+          c,
+          size.x * 0.36,
+          Paint()
+            ..color = const Color(0xFFFFC64B).withValues(alpha: 0.85)
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12));
+      canvas.drawCircle(
+          c, size.x * 0.31, Paint()..color = Colors.white.withValues(alpha: 0.55));
+    }
     final tp = TextPainter(
       text: TextSpan(
         text: data.centerSymbol,
-        style: TextStyle(
-          fontSize: size.x * 0.52,
-          color: data.symbolIsEmoji ? null : data.suit.color,
-        ),
+        style: TextStyle(fontSize: size.x * 0.52, color: data.symbolColor),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
