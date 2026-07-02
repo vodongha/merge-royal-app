@@ -38,7 +38,12 @@ class TopHud extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 2),
-            _ScoreLine(score: controller.levelScore),
+            // Nudge the score up a touch so the gap above (to the bar) and
+            // below (to the columns) read as even.
+            Transform.translate(
+              offset: const Offset(0, -10),
+              child: _ScoreLine(score: controller.levelScore),
+            ),
           ],
         );
       },
