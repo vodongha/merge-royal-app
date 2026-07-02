@@ -15,7 +15,7 @@ void main() {
     expect(c.columns[1].last.value, 4);
   });
 
-  test('a non-merging move relocates and adds a card, without a mistake', () {
+  test('wrong merge onto a non-matching, occupied column is penalised', () {
     final c = GameController();
     c.mistakesLeft = 5;
     c.columns[0].add(CardData(value: 2));
@@ -23,10 +23,26 @@ void main() {
 
     final result = c.moveGroup(0, 1, 1);
 
+    expect(result, MoveResult.illegal);
+    expect(c.mistakesLeft, 4); // costs a mistake
+    expect(c.mistakeStreak, 1); // streak grows
+    expect(c.levelScore, -1); // first wrong drop deducts 1 (score may go negative)
+    expect(c.columns[0].last.value, 2); // the 2 snapped back to its column
+    expect(c.columns[1].last.value, 8); // column 1 untouched
+  });
+
+  test('relocating onto an empty column is free and deals a fresh row', () {
+    final c = GameController();
+    c.mistakesLeft = 5;
+    c.columns[0].add(CardData(value: 2));
+    // column 1 is empty -> free relocation
+
+    final result = c.moveGroup(0, 1, 1);
+
     expect(result, MoveResult.relocated);
     expect(c.mistakesLeft, 5); // no penalty
-    expect(c.columns[1].last.value, 2); // the 2 moved onto column 1's front
-    // A non-merging move deals a fresh card to the top of every column.
+    expect(c.mistakeStreak, 0); // streak untouched
+    // A non-merging relocation deals a fresh card to the top of every column.
     expect(c.columns.every((col) => col.isNotEmpty), true);
   });
 

@@ -312,11 +312,10 @@ class GameController extends ChangeNotifier {
     save();
   }
 
-  /// Removes points for a wrong drop, clamping the score at zero so it never
-  /// goes negative (and never rewinds a level).
+  /// Removes points for a wrong drop. The score is allowed to go negative.
   void _subtractScore(int amount) {
-    levelScore = max(0, levelScore - amount);
-    totalScore = max(0, totalScore - amount);
+    levelScore -= amount;
+    totalScore -= amount;
   }
 
   /// Deals a fresh card to the TOP of every column (including empty slots) that
