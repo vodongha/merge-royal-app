@@ -246,52 +246,43 @@ class _DealButtonState extends State<_DealButton> {
         scale: _pressed ? 0.84 : 1.0,
         duration: const Duration(milliseconds: 110),
         curve: Curves.easeOutBack,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 56,
-              height: 54,
-              child: Stack(
+        // Same 62×62 footprint as the bomb / shuffle power icons, no label.
+        child: SizedBox(
+          width: 62,
+          height: 62,
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              Transform.rotate(angle: -0.20, child: _miniCard()),
+              Transform.rotate(angle: 0.10, child: _miniCard()),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 110),
+                curve: Curves.easeOut,
+                width: 30,
+                height: 30,
                 alignment: Alignment.center,
-                clipBehavior: Clip.none,
-                children: [
-                  Transform.rotate(angle: -0.20, child: _miniCard()),
-                  Transform.rotate(angle: 0.10, child: _miniCard()),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 110),
-                    curve: Curves.easeOut,
-                    width: 26,
-                    height: 26,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppTheme.neonDeep,
-                      shape: BoxShape.circle,
-                      boxShadow: _pressed
-                          ? AppTheme.glow(Colors.white, blur: 10)
-                          : null,
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 20),
-                  ),
-                ],
+                decoration: BoxDecoration(
+                  color: AppTheme.neonDeep,
+                  shape: BoxShape.circle,
+                  boxShadow:
+                      _pressed ? AppTheme.glow(Colors.white, blur: 10) : null,
+                ),
+                child: const Icon(Icons.add, color: Colors.white, size: 22),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text('DEAL',
-                style: AppTheme.arcade(size: 14, color: AppTheme.neonText)),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _miniCard() => Container(
-        width: 34,
-        height: 46,
+        width: 40,
+        height: 54,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(7),
           border: Border.all(color: Colors.black26, width: 1.5),
           boxShadow: const [
             BoxShadow(color: Colors.black26, blurRadius: 3, offset: Offset(0, 1)),
