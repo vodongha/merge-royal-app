@@ -60,6 +60,34 @@ void main() {
     expect(c.mistakesLeft, 4);
   });
 
+  test('shuffle merges any adjacent equal cards it lines up', () {
+    final c = GameController();
+    c.shuffles = 1;
+    for (final col in c.columns) {
+      col.clear();
+    }
+    c.columns[0].addAll([
+      CardData(value: 2),
+      CardData(value: 2),
+      CardData(value: 4),
+      CardData(value: 4),
+      CardData(value: 8),
+      CardData(value: 8),
+    ]);
+
+    c.useShuffle();
+
+    // Invariant: after a shuffle, no column may hold two adjacent equal,
+    // non-locked cards (they must have collapsed).
+    for (final col in c.columns) {
+      for (int i = 1; i < col.length; i++) {
+        if (!col[i].locked && !col[i - 1].locked) {
+          expect(col[i].value == col[i - 1].value, isFalse);
+        }
+      }
+    }
+  });
+
   test('staircase columns cascade into a combo', () {
     final c = GameController();
     // Column 1: 8, 4 (front). Dropping a 4 chains 4+4=8, 8+8=16.
