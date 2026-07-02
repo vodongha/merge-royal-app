@@ -8,9 +8,13 @@ spend your limited **mistakes** wisely, and use **bomb** 💣 and **shuffle** �
 power-ups to survive as the board fills up.
 
 ## Features
-- 🎴 Drag-and-drop card merging with cascading **combos** (X2 / X3 …)
+- 🎴 Drag-and-drop card merging with cascading **combos** (×2 / ×3 …)
+- ⚠️ **Wrong-merge penalty**: dropping onto a non-matching card costs a mistake
+  and deducts points (−1, −2 … growing with each miss) via a red flash
+- 🃏 **DEAL** button to draw a fresh row on demand (with a springy reveal)
 - 🏆 Level progression with a target score bar + **LEVEL UP!** celebration
-- ❤️♠♣♦♛ **Suit cards** that grant bonus score, mistakes, bombs or shuffles
+- ❤️♠♣♦♛ **Suit cards** that grant bonus score, mistakes, bombs or shuffles;
+  a soft amber halo marks the bonus cards
 - 🚫 **Locked cards** you blow up with a bomb
 - 💾 **Continue** your run (auto-save) + best-score tracking
 - 🎨 Fully canvas-drawn cards & neon UI — **no image assets required**
@@ -29,6 +33,6 @@ flutter build appbundle --release    # AAB for Google Play
 ```
 
 ## Tech
-Flutter 3.44 · Dart 3.12 · Flame 1.37 · shared_preferences · google_fonts
+Flutter 3.44 · Dart 3.12 · Flame 1.37 · shared_preferences · bundled Fredoka font (offline)
 
 See [CLAUDE.md](CLAUDE.md) for architecture and game-rule details.
