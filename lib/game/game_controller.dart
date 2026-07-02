@@ -222,7 +222,9 @@ class GameController extends ChangeNotifier {
   /// Full cascade: repeatedly merge any adjacent equal pair in the column
   /// until nothing matches, so runs and staircases resolve completely (no
   /// leftover single cards). Returns the combo length (number of merges).
-  int _collapse(int col) {
+  /// [announce] fires the merge/combo juice; pass false for tidy-up collapses
+  /// (e.g. after a shuffle) so [sync] just animates the result cleanly.
+  int _collapse(int col, {bool announce = true}) {
     final c = columns[col];
     int combo = 0;
     bool merged = true;
@@ -243,13 +245,13 @@ class GameController extends ChangeNotifier {
         b.suit = Suit.none;
 
         _addScore(b.value * (combo + 1)); // combos score more
-        onMerge?.call(MergeEvent(col, b.value, combo, a.suit));
+        if (announce) onMerge?.call(MergeEvent(col, b.value, combo, a.suit));
         merged = true;
         break; // restart the scan
       }
     }
     comboMultiplier = max(1, combo);
-    if (combo > 1) onCombo?.call(combo);
+    if (announce && combo > 1) onCombo?.call(combo);
     return combo;
   }
 
@@ -379,9 +381,15 @@ class GameController extends ChangeNotifier {
     for (int i = 0; i < all.length; i++) {
       columns[i % kColumnCount].add(all[i]);
     }
+    // Merge any adjacent equal cards the shuffle lined up, so the board never
+    // settles with obvious un-merged pairs. Silent: sync() animates the result.
+    for (int col = 0; col < kColumnCount; col++) {
+      _collapse(col, announce: false);
+    }
     shuffles--;
     onShuffle?.call();
     onToast?.call('SHUFFLED');
+    _checkGameOver();
     notifyListeners();
     save();
   }
