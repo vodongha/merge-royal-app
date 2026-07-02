@@ -44,11 +44,9 @@ class TopHud extends StatelessWidget {
                 _LevelPip(level: controller.level + 1, dim: true),
               ],
             ),
-            const SizedBox(height: 2),
-            // Nudge the score up a touch so the gap above (to the bar) and
-            // below (to the columns) read as even.
+            // Pull the score up toward the level bar (higher on screen).
             Transform.translate(
-              offset: const Offset(0, -10),
+              offset: const Offset(0, -14),
               child: _ScoreLine(score: controller.levelScore),
             ),
           ],
@@ -69,7 +67,7 @@ class _GameTitle extends StatelessWidget {
         TextSpan(
           text: 'MERGE ',
           style: AppTheme.arcade(
-            size: 22,
+            size: 32,
             color: Colors.white,
             letterSpacing: 2,
             shadows: AppTheme.textGlow(Colors.white, blur: 10),
@@ -78,7 +76,7 @@ class _GameTitle extends StatelessWidget {
         TextSpan(
           text: 'ROYAL',
           style: AppTheme.arcade(
-            size: 22,
+            size: 32,
             color: AppTheme.neon,
             letterSpacing: 2,
             shadows: AppTheme.textGlow(AppTheme.neon, blur: 12),

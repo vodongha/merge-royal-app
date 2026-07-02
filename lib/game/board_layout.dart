@@ -26,9 +26,9 @@ class BoardLayout {
     // Compact peek: just enough to read each value's strip, without wasting
     // vertical space between stacked cards.
     stripOffset = cardHeight * 0.19;
-    // Start below the score HUD so nothing overlaps it, with room to grow down.
-    boardTop = size.y * 0.26;
-    boardBottom = size.y * 0.76;
+    // Start just below the score HUD (columns nudged up), with room to grow down.
+    boardTop = size.y * 0.245;
+    boardBottom = size.y * 0.80;
     progressBarY = boardTop - cardHeight * 0.1;
   }
 
