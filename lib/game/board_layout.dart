@@ -43,6 +43,16 @@ class BoardLayout {
 
   Vector2 cardSize() => Vector2(cardWidth, cardHeight);
 
+  /// Y of the dashed "danger" line at the bottom of the play area.
+  double get dashedLineY => boardBottom + cardHeight * 0.25;
+
+  /// How many cards a column can stack before its front card crosses the
+  /// dashed line — this is the capacity before game over.
+  int get maxCards {
+    final n = ((dashedLineY - boardTop - cardHeight) / stripOffset).floor() + 1;
+    return n.clamp(4, 40);
+  }
+
   /// Which column a horizontal position falls into (clamped to 0..count-1).
   int columnAt(double x) {
     final rel = (x - leftPad) / slotWidth;

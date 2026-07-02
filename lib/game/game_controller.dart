@@ -19,7 +19,9 @@ class MergeEvent {
 }
 
 const int kColumnCount = 4;
-const int kColumnCapacity = 6;
+/// Max cards a column can hold before it overflows the dashed line and ends the
+/// run. Set from the board geometry at load (how many cards fit above the line).
+int kColumnCapacity = 12;
 const String _kSaveKey = 'merge_royal_save_v1';
 
 /// The single source of truth for the game. The Flame world and all the
@@ -62,7 +64,8 @@ class GameController extends ChangeNotifier {
   bool get hasShuffle => shuffles > 0;
 
   /// Fill ratio of a column (0..1) for its little progress bar.
-  double columnFill(int col) => columns[col].length / kColumnCapacity;
+  double columnFill(int col) =>
+      (columns[col].length / kColumnCapacity).clamp(0.0, 1.0);
 
   // ---- Lifecycle ----------------------------------------------------------
   Future<void> startNewGame() async {
@@ -151,7 +154,7 @@ class GameController extends ChangeNotifier {
     final c = columns[col];
     if (c.isEmpty || c.last.locked) return 0;
     var start = fromIndex.clamp(0, c.length - 1);
-    if (start < c.length - draggableCount) start = c.length - draggableCount;
+    // Locked cards can't be carried; start just below the deepest locked one.
     for (int k = start; k < c.length; k++) {
       if (c[k].locked) start = k + 1;
     }
@@ -300,7 +303,6 @@ class GameController extends ChangeNotifier {
   /// still has room. No scoring — this is the cost of a non-merging move.
   void _dealRowOnTop() {
     for (int i = 0; i < kColumnCount; i++) {
-      if (columns[i].length >= kColumnCapacity) continue;
       final top = columns[i].isEmpty ? null : columns[i].first;
       columns[i].insert(
           0, _spawnCard(avoid: top == null || top.locked ? null : top.value));
@@ -372,6 +374,11 @@ class GameController extends ChangeNotifier {
   void _checkGameOver() {
     if (gameOver) return;
     if (mistakesLeft <= 0) {
+      _triggerGameOver();
+      return;
+    }
+    // A column filled past its capacity ends the run.
+    if (columns.any((c) => c.length > kColumnCapacity)) {
       _triggerGameOver();
       return;
     }

@@ -92,7 +92,7 @@ class BackgroundComponent extends PositionComponent {
   }
 
   void _drawDashedLine(ui.Canvas canvas) {
-    final y = layout.boardBottom + layout.cardHeight * 0.25;
+    final y = layout.dashedLineY;
     final paint = Paint()
       ..color = Colors.white.withValues(alpha: 0.22)
       ..strokeWidth = 4

@@ -43,6 +43,7 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
   @override
   Future<void> onLoad() async {
     layout.update(size);
+    kColumnCapacity = layout.maxCards;
     _background = BackgroundComponent(layout: layout, controller: controller);
     add(_background);
     controller.addListener(_onControllerChanged);
@@ -66,6 +67,7 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
     layout.update(size);
+    kColumnCapacity = layout.maxCards;
     if (isLoaded) sync(animate: false);
   }
 
@@ -247,11 +249,14 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
     _dragPos = p.clone();
     _dragged.clear();
     final cards = controller.columns[col];
-    for (int i = cards.length - group; i < cards.length; i++) {
+    final start = cards.length - group;
+    for (int i = start; i < cards.length; i++) {
       final comp = _cards[cards[i].id];
       if (comp != null) {
         comp.lifted = true;
-        comp.priority = 1000 + i;
+        // Far above every other component (cards, consumed-card fx at 5000,
+        // background) so the card in hand always renders on top.
+        comp.priority = 100000 + (i - start);
         _dragged.add(comp);
       }
     }
@@ -262,8 +267,10 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
     if (_dragFrom < 0) return;
     final delta = event.localDelta;
     _dragPos.add(delta);
-    for (final comp in _dragged) {
+    for (int j = 0; j < _dragged.length; j++) {
+      final comp = _dragged[j];
       comp.position.add(delta);
+      comp.priority = 100000 + j; // keep the hand on top every frame
     }
     final col = layout.columnAt(_dragPos.x);
     if (col != _hoverCol) {
