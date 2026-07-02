@@ -125,7 +125,7 @@ class _GameScreenState extends State<GameScreen> {
               Positioned.fill(child: GameWidget(game: _game)),
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: TopHud(
