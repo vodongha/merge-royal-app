@@ -246,11 +246,8 @@ class _ComboPopupState extends State<ComboPopup>
     super.dispose();
   }
 
-  Color get _color => widget.penalty
-      ? AppTheme.danger
-      : (widget.combo >= 4
-          ? AppTheme.danger
-          : (widget.combo == 3 ? AppTheme.purpleGlow : AppTheme.warning));
+  // Score-up popups (×2, ×3 …) are always amber; penalty popups (-1, -2 …) red.
+  Color get _color => widget.penalty ? AppTheme.danger : AppTheme.warning;
 
   String get _label => widget.penalty ? '-${widget.combo}' : '×${widget.combo}';
 
@@ -353,76 +350,201 @@ class HowToPlayDialog extends StatelessWidget {
   const HowToPlayDialog({super.key, required this.onClose});
   final VoidCallback onClose;
 
+  static const _blue = Color(0xFF3D8BFF);
+  static const _pink = Color(0xFFE0467A);
+  static const _orange = Color(0xFFFF8A3D);
+  static const _dark = Color(0xFF1B2432);
+
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
       child: Container(
-        color: AppTheme.background.withValues(alpha: 0.97),
+        color: const Color(0xFF05080B),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(children: [
-              Row(children: [
-                const Expanded(child: NeonText('HOW TO PLAY', size: 30)),
-                NeonIconButton(icon: Icons.close, onTap: onClose, size: 50),
+          child: Column(children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 16, 8),
+              child: Row(children: [
+                const Expanded(child: NeonText('HOW TO PLAY', size: 26)),
+                NeonIconButton(icon: Icons.close, onTap: onClose, size: 46),
               ]),
-              const SizedBox(height: 20),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(children: [
-                    _section(
-                      icon: Icons.gps_fixed,
-                      title: 'OBJECTIVE',
-                      body: 'Merge cards with the same number and score as high as possible!',
-                    ),
-                    const SizedBox(height: 16),
-                    _section(
-                      icon: Icons.touch_app,
-                      title: 'CONTROLS',
-                      body: 'Touch a column and drag its front card onto a matching card to MERGE. Build staircases (2,4,8…) to trigger big combo chains.',
-                    ),
-                    const SizedBox(height: 16),
-                    _section(
-                      icon: Icons.bolt,
-                      title: 'POWER-UPS & CARDS',
-                      body: 'Suit cards (♠♥♣♦♛) give bonus score, mistakes, bombs or shuffles. 🚫 locked cards block a column — blow them up with a BOMB. SHUFFLE rearranges the board.',
-                    ),
-                    const SizedBox(height: 16),
-                    _section(
-                      icon: Icons.warning_amber,
-                      title: 'MISTAKES',
-                      body: 'Dropping onto a card that does NOT match is a wrong merge: it costs one of your MISTAKES LEFT and deducts points (−1, −2, … more for each wrong drop in a row). Moving onto an empty slot is always free. DRAGGABLE AT A TIME (bottom-right) is how many cards you can grab at once.',
-                    ),
-                    const SizedBox(height: 20),
-                  ]),
-                ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(18, 6, 18, 28),
+                children: [
+                  _section(
+                    accent: AppTheme.neon,
+                    icon: Icons.emoji_events_rounded,
+                    title: 'GOAL',
+                    body:
+                        'Merge cards of the same number to grow them (2+2 = 4, 4+4 = 8 …) and score as high as you can. Keep a column from stacking down to the dashed line or it\'s game over.',
+                  ),
+                  _section(
+                    accent: _blue,
+                    icon: Icons.touch_app_rounded,
+                    title: 'HOW TO MERGE',
+                    body:
+                        'Drag the front card of a column onto a matching card. Chain a staircase (2 → 4 → 8 …) to set off a combo.',
+                    child: _mergeExample(),
+                  ),
+                  _section(
+                    accent: AppTheme.warning,
+                    icon: Icons.bolt_rounded,
+                    title: 'COMBOS',
+                    body:
+                        'When cards cascade in one move you get a combo — an amber ×2, ×3 … flash and bonus points.',
+                  ),
+                  _section(
+                    accent: _pink,
+                    icon: Icons.style_rounded,
+                    title: 'SPECIAL CARDS',
+                    body: 'Merge a suit card (amber halo) to trigger its bonus:',
+                    child: _cardLegend(),
+                  ),
+                  _section(
+                    accent: AppTheme.danger,
+                    icon: Icons.warning_amber_rounded,
+                    title: 'PENALTY',
+                    body:
+                        'Dropping on a card that does NOT match is a wrong merge — it costs a MISTAKE and points (red −1, −2 … rising with each wrong drop in a row). Moving onto an empty slot is always free.',
+                  ),
+                  _section(
+                    accent: _orange,
+                    icon: Icons.whatshot_rounded,
+                    title: 'POWER-UPS',
+                    body:
+                        'BOMB destroys a 🚫 locked card. SHUFFLE rearranges the whole board. Tap one, then tap a column to use it.',
+                  ),
+                ],
               ),
-            ]),
-          ),
+            ),
+          ]),
         ),
       ),
     );
   }
 
-  Widget _section({required IconData icon, required String title, required String body}) {
+  Widget _section({
+    required Color accent,
+    required IconData icon,
+    required String title,
+    required String body,
+    Widget? child,
+  }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.neon, width: 2.5),
-        boxShadow: AppTheme.glow(AppTheme.neon, blur: 10),
+        color: const Color(0xFF0E151B),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: accent.withValues(alpha: 0.35), width: 1.5),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: AppTheme.arcade(size: 18, color: AppTheme.neon)),
-        const SizedBox(height: 12),
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Icon(icon, color: Colors.white, size: 34),
-          const SizedBox(width: 14),
-          Expanded(
-              child: Text(body,
-                  style: AppTheme.body(size: 15, color: Colors.white, weight: FontWeight.w600))),
+        Row(children: [
+          Container(
+            width: 38,
+            height: 38,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: accent.withValues(alpha: 0.18),
+            ),
+            child: Icon(icon, color: accent, size: 21),
+          ),
+          const SizedBox(width: 12),
+          Text(title, style: AppTheme.arcade(size: 17, color: accent)),
         ]),
+        const SizedBox(height: 12),
+        Text(body,
+            style: AppTheme.body(
+                size: 14.5, color: Colors.white70, weight: FontWeight.w500)),
+        if (child != null) ...[const SizedBox(height: 14), child],
+      ]),
+    );
+  }
+
+  Widget _mergeExample() {
+    Widget arrow(IconData i) =>
+        Icon(i, color: Colors.white38, size: 22);
+    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      _miniCard('2', '♠', _dark),
+      const SizedBox(width: 6),
+      arrow(Icons.add_rounded),
+      const SizedBox(width: 6),
+      _miniCard('2', '♠', _dark),
+      const SizedBox(width: 8),
+      arrow(Icons.arrow_forward_rounded),
+      const SizedBox(width: 8),
+      _miniCard('4', '♥', const Color(0xFFD8324B)),
+    ]);
+  }
+
+  Widget _cardLegend() {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      alignment: WrapAlignment.center,
+      children: [
+        _legend('♠', _dark, '+Score'),
+        _legend('♥', const Color(0xFFD8324B), '+Life'),
+        _legend('♣', _dark, '+Bomb'),
+        _legend('♦', const Color(0xFFD8324B), '+Shuffle'),
+        _legend('♛', _pink, 'Jackpot'),
+        _legend('🚫', _dark, 'Locked', locked: true),
+      ],
+    );
+  }
+
+  Widget _legend(String sym, Color symColor, String label,
+      {bool locked = false}) {
+    return SizedBox(
+      width: 62,
+      child: Column(children: [
+        _miniCard('', sym, symColor, locked: locked),
+        const SizedBox(height: 5),
+        Text(label,
+            textAlign: TextAlign.center,
+            style: AppTheme.body(
+                size: 11.5, color: Colors.white60, weight: FontWeight.w600)),
+      ]),
+    );
+  }
+
+  Widget _miniCard(String num, String sym, Color symColor,
+      {bool locked = false}) {
+    return Container(
+      width: 46,
+      height: 62,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: locked
+              ? const [Color(0xFFDDE1E4), Color(0xFFBBC0C4)]
+              : const [Color(0xFFFDFDFB), Color(0xFFE9EAE6)],
+        ),
+        borderRadius: BorderRadius.circular(9),
+        boxShadow: const [
+          BoxShadow(color: Colors.black45, blurRadius: 5, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Stack(children: [
+        if (num.isNotEmpty)
+          Positioned(
+            top: 3,
+            left: 6,
+            child: Text(num,
+                style: AppTheme.arcade(size: 12, color: _dark)),
+          ),
+        Center(
+          child: locked
+              ? const Icon(Icons.block_rounded,
+                  color: Color(0xFFE53935), size: 24)
+              : Text(sym, style: TextStyle(fontSize: 24, color: symColor)),
+        ),
       ]),
     );
   }

@@ -2,8 +2,9 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Centralised sound: preloads SFX, plays the looping music bed and exposes a
-/// persisted [muted] flag shared by the menu, pause dialog and game.
+/// Centralised sound. SFX play through pre-warmed [AudioPool]s so there is no
+/// per-play load latency, and a looping music bed. The [muted] flag is
+/// persisted and shared by the menu, pause dialog and game.
 class AudioController {
   AudioController._();
   static final AudioController instance = AudioController._();
@@ -21,6 +22,7 @@ class AudioController {
   ];
 
   final ValueNotifier<bool> muted = ValueNotifier<bool>(false);
+  final Map<String, AudioPool> _pools = {};
   bool _ready = false;
   bool _musicWanted = false;
 
@@ -28,7 +30,12 @@ class AudioController {
     try {
       final prefs = await SharedPreferences.getInstance();
       muted.value = prefs.getBool(_kMutedKey) ?? false;
-      await FlameAudio.audioCache.loadAll(_sfx);
+      // Pre-create low-latency pools so the first (and every) play is instant.
+      for (final f in _sfx) {
+        try {
+          _pools[f] = await FlameAudio.createPool(f, maxPlayers: 4);
+        } catch (_) {}
+      }
       _ready = true;
     } catch (_) {/* audio is best-effort */}
   }
@@ -50,17 +57,21 @@ class AudioController {
 
   void _play(String file, {double volume = 1.0}) {
     if (muted.value || !_ready) return;
+    final pool = _pools[file];
+    if (pool == null) return;
     try {
-      FlameAudio.play(file, volume: volume);
+      pool.start(volume: volume);
     } catch (_) {}
   }
 
   void tap() => _play('tap.wav', volume: 0.5);
-  void mistake() => _play('mistake.wav', volume: 0.8);
+  void mistake() => _play('mistake.wav', volume: 0.85);
   void bomb() => _play('bomb.wav', volume: 0.9);
   void shuffle() => _play('shuffle.wav', volume: 0.7);
   void levelUp() => _play('levelup.wav', volume: 0.9);
   void gameOver() => _play('gameover.wav', volume: 0.9);
+  void reward() => _play('combo.wav', volume: 0.8);
+  void penalty() => _play('mistake.wav', volume: 0.9);
 
   void merge(int combo) {
     _play('merge.wav', volume: 0.8);
