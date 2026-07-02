@@ -21,9 +21,16 @@ class TopHud extends StatelessWidget {
         return Column(
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 NeonIconButton(icon: Icons.info_outline, onTap: onInfo, size: 50),
+                const Expanded(
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: _GameTitle(),
+                    ),
+                  ),
+                ),
                 NeonIconButton(icon: Icons.pause, onTap: onPause, size: 50),
               ],
             ),
@@ -47,6 +54,37 @@ class TopHud extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Compact "MERGE ROYAL" wordmark shown between the info and pause buttons.
+class _GameTitle extends StatelessWidget {
+  const _GameTitle();
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: TextSpan(children: [
+        TextSpan(
+          text: 'MERGE ',
+          style: AppTheme.arcade(
+            size: 22,
+            color: Colors.white,
+            letterSpacing: 2,
+            shadows: AppTheme.textGlow(Colors.white, blur: 10),
+          ),
+        ),
+        TextSpan(
+          text: 'ROYAL',
+          style: AppTheme.arcade(
+            size: 22,
+            color: AppTheme.neon,
+            letterSpacing: 2,
+            shadows: AppTheme.textGlow(AppTheme.neon, blur: 12),
+          ),
+        ),
+      ]),
     );
   }
 }
