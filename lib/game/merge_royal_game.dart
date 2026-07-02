@@ -30,6 +30,9 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
   double _shake = 0;
   final Vector2 _shakeOffset = Vector2.zero();
 
+  // True during the sync right after a deal, so freshly dealt cards bounce in.
+  bool _dealing = false;
+
   // Drag session ------------------------------------------------------------
   int _dragFrom = -1;
   int _dragGroup = 0;
@@ -54,7 +57,25 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
       AudioController.instance.mistake();
       _addShake(7);
     };
+    controller.onDeal = _onDeal;
     sync(animate: false);
+  }
+
+  void _onDeal() {
+    _dealing = true;
+    AudioController.instance.shuffle();
+    // A soft sparkle pops over each column as its card lands — staggered
+    // left-to-right to match the cascade in [sync].
+    for (int col = 0; col < kColumnCount; col++) {
+      final at = Vector2(
+          layout.columnCenterX(col), layout.boardTop + layout.cardHeight * 0.2);
+      Future.delayed(Duration(milliseconds: 130 + col * 60), () {
+        if (isMounted) {
+          _burst(at, const [AppTheme.neon, AppTheme.neonDeep, Colors.white],
+              count: 8, speed: 90, radius: 2.5);
+        }
+      });
+    }
   }
 
   @override
@@ -137,6 +158,10 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
 
   // ---- Sync model -> components ------------------------------------------
   void sync({bool animate = true}) {
+    // Consume the one-shot deal flag: the cards created in this sync are the
+    // freshly dealt row, so they get a springy cascade instead of a plain drop.
+    final dealing = _dealing;
+    _dealing = false;
     final live = <int>{};
     for (int col = 0; col < kColumnCount; col++) {
       final cards = controller.columns[col];
@@ -146,9 +171,12 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
         final isFront = i == cards.length - 1;
         final targetPos = Vector2(layout.cardX(col), layout.cardY(i));
         var comp = _cards[data.id];
+        final isNew = comp == null;
         if (comp == null) {
           comp = CardComponent(data: data, size: layout.cardSize());
-          comp.position = targetPos.clone()..y -= layout.cardHeight; // drop in
+          // Freshly dealt cards start further above so they bounce down in.
+          comp.position = targetPos.clone()
+            ..y -= layout.cardHeight * (dealing ? 1.7 : 1.0);
           comp.priority = i;
           _cards[data.id] = comp;
           add(comp);
@@ -161,8 +189,33 @@ class MergeRoyalGame extends FlameGame with DragCallbacks, TapCallbacks {
         comp.scale = Vector2.all(1); // clear any leftover animation scale
 
         if (animate) {
-          comp.add(MoveToEffect(
-              targetPos, EffectController(duration: 0.16, curve: Curves.easeOut)));
+          final delay = col * 0.06;
+          if (dealing && isNew) {
+            // The freshly dealt card drops from above onto the teal holder,
+            // arriving just after the pile has sunk to reveal it.
+            comp.add(MoveToEffect(
+                targetPos,
+                EffectController(
+                    duration: 0.34,
+                    startDelay: delay + 0.13,
+                    curve: Curves.easeOutBack)));
+          } else if (dealing) {
+            // Existing cards sink DOWN to uncover the teal holder at the top of
+            // the column, then settle back up beneath the new card — so every
+            // column reveals its holder on a deal, not just an empty one.
+            final revealPos = targetPos.clone()..y += layout.cardHeight;
+            comp.add(SequenceEffect([
+              MoveToEffect(
+                  revealPos,
+                  EffectController(
+                      duration: 0.13, startDelay: delay, curve: Curves.easeOut)),
+              MoveToEffect(targetPos,
+                  EffectController(duration: 0.32, curve: Curves.easeOutBack)),
+            ]));
+          } else {
+            comp.add(MoveToEffect(
+                targetPos, EffectController(duration: 0.16, curve: Curves.easeOut)));
+          }
         } else {
           comp.position = targetPos;
         }

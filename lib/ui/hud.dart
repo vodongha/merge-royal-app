@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../audio/audio_controller.dart';
 import '../game/game_controller.dart';
 import '../theme/app_theme.dart';
 import 'neon_widgets.dart';
@@ -132,41 +133,128 @@ class PowerBar extends StatelessWidget {
             boxShadow: AppTheme.glow(AppTheme.neon, blur: 18),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Row(
+          // DEAL sits on the left; the bomb + shuffle pair is centered in the
+          // full bar (a Stack keeps them centered regardless of the deal button).
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: _DealButton(onTap: () {
+                  AudioController.instance.tap();
+                  controller.dealNow();
+                }),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('TAP TO',
-                      style: AppTheme.arcade(size: 16, color: AppTheme.neonText)),
-                  Text('USE',
-                      style: AppTheme.arcade(size: 16, color: AppTheme.neonText)),
+                  _PowerIcon(
+                    icon: Icons.local_fire_department,
+                    bg: const [Color(0xFFFF7A3D), Color(0xFFB71C1C)],
+                    count: controller.bombs,
+                    armed: controller.bombArmed,
+                    onTap: controller.armBomb,
+                  ),
+                  const SizedBox(width: 22),
+                  _PowerIcon(
+                    icon: Icons.shuffle,
+                    bg: const [Color(0xFF3D5BFF), Color(0xFF1A237E)],
+                    count: controller.shuffles,
+                    armed: false,
+                    onTap: controller.useShuffle,
+                  ),
                 ],
               ),
-              const Spacer(),
-              _PowerIcon(
-                icon: Icons.local_fire_department,
-                bg: const [Color(0xFFFF7A3D), Color(0xFFB71C1C)],
-                count: controller.bombs,
-                armed: controller.bombArmed,
-                onTap: controller.armBomb,
-              ),
-              const SizedBox(width: 22),
-              _PowerIcon(
-                icon: Icons.shuffle,
-                bg: const [Color(0xFF3D5BFF), Color(0xFF1A237E)],
-                count: controller.shuffles,
-                armed: false,
-                onTap: controller.useShuffle,
-              ),
-              const Spacer(),
             ],
           ),
         );
       },
     );
   }
+}
+
+/// Deck button — tap to deal a fresh row of cards on demand. Presses in with a
+/// springy scale so the tap feels responsive.
+class _DealButton extends StatefulWidget {
+  const _DealButton({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  State<_DealButton> createState() => _DealButtonState();
+}
+
+class _DealButtonState extends State<_DealButton> {
+  bool _pressed = false;
+
+  void _setPressed(bool v) {
+    if (_pressed != v) setState(() => _pressed = v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _setPressed(true),
+      onTapUp: (_) {
+        _setPressed(false);
+        widget.onTap();
+      },
+      onTapCancel: () => _setPressed(false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.84 : 1.0,
+        duration: const Duration(milliseconds: 110),
+        curve: Curves.easeOutBack,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 56,
+              height: 54,
+              child: Stack(
+                alignment: Alignment.center,
+                clipBehavior: Clip.none,
+                children: [
+                  Transform.rotate(angle: -0.20, child: _miniCard()),
+                  Transform.rotate(angle: 0.10, child: _miniCard()),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 110),
+                    curve: Curves.easeOut,
+                    width: 26,
+                    height: 26,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppTheme.neonDeep,
+                      shape: BoxShape.circle,
+                      boxShadow: _pressed
+                          ? AppTheme.glow(Colors.white, blur: 10)
+                          : null,
+                    ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 20),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text('DEAL',
+                style: AppTheme.arcade(size: 14, color: AppTheme.neonText)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _miniCard() => Container(
+        width: 34,
+        height: 46,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: Colors.black26, width: 1.5),
+          boxShadow: const [
+            BoxShadow(color: Colors.black26, blurRadius: 3, offset: Offset(0, 1)),
+          ],
+        ),
+      );
 }
 
 class _PowerIcon extends StatelessWidget {

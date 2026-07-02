@@ -15,8 +15,8 @@ class BackgroundComponent extends PositionComponent {
   final BoardLayout layout;
   final GameController controller;
 
-  /// Column currently being fully dragged out — its teal slot shows live while
-  /// the last cards are still lifted in the player's hand.
+  /// Column currently being fully dragged out. Unused for slot visibility now
+  /// that every column shows a permanent teal holder, but still set by the game.
   int emptyingColumn = -1;
 
   @override
@@ -25,7 +25,7 @@ class BackgroundComponent extends PositionComponent {
   @override
   void render(ui.Canvas canvas) {
     _drawColumnProgressBars(canvas);
-    _drawEmptySlots(canvas);
+    _drawColumnSlots(canvas);
     _drawDashedLine(canvas);
   }
 
@@ -56,20 +56,21 @@ class BackgroundComponent extends PositionComponent {
     }
   }
 
-  /// A glowing teal "waiting" slot shown wherever a column has been emptied,
-  /// so the player always sees where a new pile can go.
-  void _drawEmptySlots(ui.Canvas canvas) {
+  /// The teal "holder" at the top of every column. It is always drawn (a fixed
+  /// one-card slot), so an emptied column shows it and, during a deal, it stays
+  /// put until the incoming card lands on top of it — no black flash. Cards are
+  /// drawn over it because this component sits at priority -10.
+  void _drawColumnSlots(ui.Canvas canvas) {
+    final radius = Radius.circular(layout.cardWidth * 0.14);
     for (int col = 0; col < kColumnCount; col++) {
-      if (controller.columns[col].isNotEmpty && col != emptyingColumn) continue;
-      final rect = Rect.fromLTWH(
-          layout.cardX(col), layout.boardTop, layout.cardWidth, layout.cardHeight);
-      final rrect = RRect.fromRectAndRadius(
-          rect, Radius.circular(layout.cardWidth * 0.14));
+      final rect = Rect.fromLTWH(layout.cardX(col), layout.boardTop,
+          layout.cardWidth, layout.cardHeight);
+      final rrect = RRect.fromRectAndRadius(rect, radius);
       // Outer glow.
       canvas.drawRRect(
           rrect.inflate(2),
           Paint()
-            ..color = AppTheme.neon.withValues(alpha: 0.45)
+            ..color = AppTheme.neon.withValues(alpha: 0.40)
             ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14));
       // Solid teal fill with a soft vertical gradient.
       canvas.drawRRect(
@@ -79,13 +80,14 @@ class BackgroundComponent extends PositionComponent {
               AppTheme.neon.withValues(alpha: 0.85),
               AppTheme.neonDeep.withValues(alpha: 0.85),
             ]));
-      // Top sheen.
+      // Top sheen — sized to a card, not the whole column.
       canvas.save();
       canvas.clipRRect(rrect);
       canvas.drawRRect(
           RRect.fromRectAndRadius(
-              Rect.fromLTWH(rect.left, rect.top, rect.width, rect.height * 0.4),
-              Radius.circular(layout.cardWidth * 0.14)),
+              Rect.fromLTWH(
+                  rect.left, rect.top, rect.width, layout.cardHeight * 0.35),
+              radius),
           Paint()..color = Colors.white.withValues(alpha: 0.22));
       canvas.restore();
     }

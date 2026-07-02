@@ -43,6 +43,7 @@ class GameController extends ChangeNotifier {
   int bombs = 1;
   int shuffles = 1;
   int comboMultiplier = 1; // last combo, drives the "X2" flash
+  int mistakeStreak = 0; // consecutive wrong drops, drives the red "-N" flash
   bool bombArmed = false;
   bool gameOver = false;
   bool isPaused = false;
@@ -57,6 +58,8 @@ class GameController extends ChangeNotifier {
   VoidCallback? onShuffle;
   VoidCallback? onMistake;
   void Function(int combo)? onCombo;
+  void Function(int streak)? onPenalty; // red "-N" flash on a wrong drop
+  VoidCallback? onDeal;
 
   int get levelTarget => 200 + level * 150;
   double get levelProgress => (levelScore / levelTarget).clamp(0.0, 1.0);
@@ -76,6 +79,7 @@ class GameController extends ChangeNotifier {
     bombs = 1;
     shuffles = 1;
     comboMultiplier = 1;
+    mistakeStreak = 0;
     bombArmed = false;
     gameOver = false;
     isPaused = false;
@@ -177,15 +181,9 @@ class GameController extends ChangeNotifier {
         !leading.locked &&
         dst.last.value == leading.value;
 
-    // Non-merging placements must fit; merges shrink the pile so they're fine.
-    if (!willMerge && dst.length + groupSize > kColumnCapacity) {
-      _registerMistake();
-      return MoveResult.illegal;
-    }
-
-    _transfer(src, dst, groupSize);
-
     if (willMerge) {
+      _transfer(src, dst, groupSize);
+      mistakeStreak = 0; // a correct merge clears the wrong-drop streak
       _collapse(to);
       _checkGameOver();
       notifyListeners();
@@ -193,14 +191,26 @@ class GameController extends ChangeNotifier {
       return MoveResult.merged;
     }
 
-    // Moving a card without merging costs no points but deals a fresh card to
-    // the top of every column (extra pressure).
-    comboMultiplier = 1;
-    _dealRowOnTop();
-    _checkGameOver();
-    notifyListeners();
-    save();
-    return MoveResult.relocated;
+    // Dropping onto an EMPTY column is a free relocation (no penalty) — as long
+    // as it fits. It deals a fresh row to every column (extra pressure).
+    if (dst.isEmpty) {
+      if (dst.length + groupSize > kColumnCapacity) {
+        _registerMistake();
+        return MoveResult.illegal;
+      }
+      _transfer(src, dst, groupSize);
+      comboMultiplier = 1;
+      _dealRowOnTop();
+      _checkGameOver();
+      notifyListeners();
+      save();
+      return MoveResult.relocated;
+    }
+
+    // Dropping onto an occupied, non-matching column is an incorrect merge:
+    // snap back and take a point penalty that grows with the wrong-drop streak.
+    _registerMistake();
+    return MoveResult.illegal;
   }
 
   void _transfer(List<CardData> src, List<CardData> dst, int n) {
@@ -288,15 +298,25 @@ class GameController extends ChangeNotifier {
   }
 
   void _registerMistake() {
+    mistakeStreak++;
     mistakesLeft--;
+    // Point penalty grows with the streak of consecutive wrong drops: -1, -2, …
+    _subtractScore(mistakeStreak);
     onMistake?.call();
-    onToast?.call('MISTAKE!');
+    onPenalty?.call(mistakeStreak);
     if (mistakesLeft <= 0) {
       mistakesLeft = 0;
       _triggerGameOver();
     }
     notifyListeners();
     save();
+  }
+
+  /// Removes points for a wrong drop, clamping the score at zero so it never
+  /// goes negative (and never rewinds a level).
+  void _subtractScore(int amount) {
+    levelScore = max(0, levelScore - amount);
+    totalScore = max(0, totalScore - amount);
   }
 
   /// Deals a fresh card to the TOP of every column (including empty slots) that
@@ -307,6 +327,19 @@ class GameController extends ChangeNotifier {
       columns[i].insert(
           0, _spawnCard(avoid: top == null || top.locked ? null : top.value));
     }
+    onDeal?.call();
+  }
+
+  /// Player-triggered draw: deal a fresh row of cards on demand (same as a
+  /// non-merging move) — for when there is nothing left to merge. No scoring.
+  void dealNow() {
+    if (gameOver) return;
+    comboMultiplier = 1;
+    _dealRowOnTop();
+    onToast?.call('DEAL');
+    _checkGameOver();
+    notifyListeners();
+    save();
   }
 
   // ---- Power-ups ----------------------------------------------------------
