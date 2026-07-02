@@ -27,7 +27,7 @@ class TopHud extends StatelessWidget {
                 NeonIconButton(icon: Icons.pause, onTap: onPause, size: 50),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Row(
               children: [
                 _LevelPip(level: controller.level),
@@ -37,7 +37,7 @@ class TopHud extends StatelessWidget {
                 _LevelPip(level: controller.level + 1, dim: true),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 2),
             _ScoreLine(score: controller.levelScore),
           ],
         );
