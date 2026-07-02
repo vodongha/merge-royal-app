@@ -1,0 +1,307 @@
+<en-US>
+Welcome to Merge Royal 1.0.0! 🎉
+Our very first release is here:
+• Slide, drop & merge cards from 2 to 4096 and beyond
+• Chain combos for big score multipliers
+• Special suit cards (♠♥♣♦♛): bonuses, bombs & shuffle
+• Soft golden bonus cards & polished neon visuals
+• Auto-save · 100% offline · no sign-up
+Thanks for playing — merge to win!
+</en-US>
+
+<vi>
+Chào mừng đến với Merge Royal 1.0.0! 🎉
+Phiên bản đầu tiên đã có mặt:
+• Kéo, thả & gộp thẻ từ 2 lên 4096 và xa hơn
+• Chuỗi combo cho hệ số nhân điểm lớn
+• Thẻ chất bài đặc biệt (♠♥♣♦♛): thưởng, bom & xáo trộn
+• Thẻ thưởng ánh vàng mềm mại, hình ảnh neon trau chuốt
+• Tự động lưu · Hoàn toàn offline · Không cần đăng ký
+Cảm ơn bạn đã chơi — gộp thẻ để chiến thắng!
+</vi>
+
+<de-DE>
+Willkommen bei Merge Royal 1.0.0! 🎉
+Unser allererstes Release ist da:
+• Karten von 2 bis 4096 und weiter schieben & verschmelzen
+• Combo-Ketten für große Punkte-Multiplikatoren
+• Spezielle Farbkarten (♠♥♣♦♛): Boni, Bomben & Mischen
+• Sanft goldene Bonuskarten & feine Neon-Optik
+• Auto-Speichern · 100% offline · keine Anmeldung
+Danke fürs Spielen — merge dich zum Sieg!
+</de-DE>
+
+<fr-FR>
+Bienvenue dans Merge Royal 1.0.0 ! 🎉
+Voici notre toute première version :
+• Glissez et fusionnez les cartes de 2 à 4096 et au-delà
+• Enchaînez les combos pour de gros multiplicateurs
+• Cartes spéciales (♠♥♣♦♛) : bonus, bombes et mélange
+• Cartes bonus dorées et visuels néon soignés
+• Sauvegarde auto · 100% hors ligne · sans inscription
+Merci de jouer — fusionnez pour gagner !
+</fr-FR>
+
+<es-ES>
+¡Bienvenido a Merge Royal 1.0.0! 🎉
+Ya está aquí nuestra primera versión:
+• Desliza y fusiona cartas del 2 al 4096 y más allá
+• Encadena combos para grandes multiplicadores
+• Cartas de palo especiales (♠♥♣♦♛): bonus, bombas y barajado
+• Cartas bonus doradas y cuidados gráficos neón
+• Autoguardado · 100% sin conexión · sin registro
+¡Gracias por jugar, fusiona para ganar!
+</es-ES>
+
+<es-419>
+¡Bienvenido a Merge Royal 1.0.0! 🎉
+Llegó nuestra primera versión:
+• Desliza y fusiona cartas del 2 al 4096 y más allá
+• Encadena combos para grandes multiplicadores
+• Cartas de palo especiales (♠♥♣♦♛): bonos, bombas y mezcla
+• Cartas bonus doradas y gráficos neón pulidos
+• Autoguardado · 100% sin conexión · sin registro
+¡Gracias por jugar, fusiona para ganar!
+</es-419>
+
+<pt-BR>
+Bem-vindo ao Merge Royal 1.0.0! 🎉
+Nossa primeira versão chegou:
+• Arraste e junte cartas do 2 ao 4096 e além
+• Encadeie combos para grandes multiplicadores
+• Cartas de naipe especiais (♠♥♣♦♛): bônus, bombas e embaralhar
+• Cartas bônus douradas e visual neon caprichado
+• Salvamento automático · 100% offline · sem cadastro
+Obrigado por jogar — junte para vencer!
+</pt-BR>
+
+<pt-PT>
+Bem-vindo ao Merge Royal 1.0.0! 🎉
+Chegou a nossa primeira versão:
+• Arraste e junte cartas do 2 ao 4096 e mais além
+• Encadeie combos para grandes multiplicadores
+• Cartas de naipe especiais (♠♥♣♦♛): bónus, bombas e baralhar
+• Cartas bónus douradas e visuais neon cuidados
+• Gravação automática · 100% offline · sem registo
+Obrigado por jogar — junte para vencer!
+</pt-PT>
+
+<it-IT>
+Benvenuto in Merge Royal 1.0.0! 🎉
+È arrivata la nostra prima versione:
+• Trascina e unisci le carte dal 2 al 4096 e oltre
+• Concatena combo per grandi moltiplicatori
+• Carte speciali di seme (♠♥♣♦♛): bonus, bombe e mescola
+• Carte bonus dorate e grafica neon curata
+• Salvataggio automatico · 100% offline · senza registrazione
+Grazie per aver giocato — unisci per vincere!
+</it-IT>
+
+<nl-NL>
+Welkom bij Merge Royal 1.0.0! 🎉
+Onze allereerste versie is er:
+• Schuif en voeg kaarten samen van 2 tot 4096 en verder
+• Ketting-combo's voor grote scorevermenigvuldigers
+• Speciale kleurkaarten (♠♥♣♦♛): bonussen, bommen en schudden
+• Zachtgouden bonuskaarten en verzorgde neonlook
+• Automatisch opslaan · 100% offline · geen registratie
+Bedankt voor het spelen — merge om te winnen!
+</nl-NL>
+
+<ru-RU>
+Добро пожаловать в Merge Royal 1.0.0! 🎉
+Наш первый релиз уже здесь:
+• Двигайте и объединяйте карты от 2 до 4096 и выше
+• Цепочки комбо для больших множителей очков
+• Особые карты мастей (♠♥♣♦♛): бонусы, бомбы и перемешивание
+• Мягко-золотые бонусные карты и отточенная неон-графика
+• Автосохранение · 100% офлайн · без регистрации
+Спасибо за игру — объединяй и побеждай!
+</ru-RU>
+
+<tr-TR>
+Merge Royal 1.0.0'a hoş geldin! 🎉
+İlk sürümümüz burada:
+• Kartları 2'den 4096'ya ve ötesine kaydır ve birleştir
+• Büyük puan çarpanları için combo zincirle
+• Özel simge kartları (♠♥♣♦♛): bonus, bomba ve karıştırma
+• Yumuşak altın bonus kartları ve şık neon görseller
+• Otomatik kayıt · %100 çevrimdışı · kayıt yok
+Oynadığın için teşekkürler — birleştir ve kazan!
+</tr-TR>
+
+<pl-PL>
+Witaj w Merge Royal 1.0.0! 🎉
+Oto nasza pierwsza wersja:
+• Przesuwaj i łącz karty od 2 do 4096 i dalej
+• Łańcuchy combo dla dużych mnożników punktów
+• Specjalne karty kolorów (♠♥♣♦♛): bonusy, bomby i tasowanie
+• Delikatnie złote karty bonusowe i dopracowana grafika neon
+• Autozapis · 100% offline · bez rejestracji
+Dziękujemy za grę — łącz, by wygrać!
+</pl-PL>
+
+<uk>
+Ласкаво просимо до Merge Royal 1.0.0! 🎉
+Наш перший реліз уже тут:
+• Пересувайте й об'єднуйте карти від 2 до 4096 і далі
+• Ланцюжки комбо для великих множників очок
+• Особливі карти мастей (♠♥♣♦♛): бонуси, бомби та перемішування
+• М'яко-золоті бонусні карти й відшліфована неон-графіка
+• Автозбереження · 100% офлайн · без реєстрації
+Дякуємо за гру — об'єднуй і перемагай!
+</uk>
+
+<ja-JP>
+Merge Royal 1.0.0へようこそ！🎉
+記念すべき初リリース：
+• 2から4096、さらにその先までカードをスライド＆合成
+• 連鎖コンボで大きなスコア倍率
+• 特別なスートカード（♠♥♣♦♛）：ボーナス・ボム・シャッフル
+• やわらかな金色のボーナスカードと磨かれたネオン演出
+• オートセーブ・完全オフライン・登録不要
+プレイありがとう — 合成して勝利をつかもう！
+</ja-JP>
+
+<ko-KR>
+Merge Royal 1.0.0에 오신 것을 환영합니다! 🎉
+첫 번째 출시입니다:
+• 2부터 4096 그 너머까지 카드를 밀어 합치기
+• 연쇄 콤보로 큰 점수 배수
+• 특수 무늬 카드(♠♥♣♦♛): 보너스, 폭탄, 셔플
+• 부드러운 금빛 보너스 카드와 다듬은 네온 비주얼
+• 자동 저장 · 100% 오프라인 · 가입 불필요
+플레이해 주셔서 감사합니다 — 합쳐서 이기세요!
+</ko-KR>
+
+<zh-CN>
+欢迎来到 Merge Royal 1.0.0！🎉
+我们的首个版本上线啦：
+• 滑动合并卡牌，从 2 一路冲到 4096 甚至更高
+• 连锁连击获得超高分数倍率
+• 特殊花色卡牌（♠♥♣♦♛）：奖励、炸弹与洗牌
+• 柔和金光奖励卡与精致霓虹画面
+• 自动保存 · 100% 离线 · 无需注册
+感谢游玩 —— 合并即胜利！
+</zh-CN>
+
+<zh-TW>
+歡迎來到 Merge Royal 1.0.0！🎉
+我們的首個版本上線囉：
+• 滑動合併卡牌，從 2 一路衝到 4096 甚至更高
+• 連鎖連擊獲得超高分數倍率
+• 特殊花色卡牌（♠♥♣♦♛）：獎勵、炸彈與洗牌
+• 柔和金光獎勵卡與精緻霓虹畫面
+• 自動存檔 · 100% 離線 · 免註冊
+感謝遊玩 —— 合併即勝利！
+</zh-TW>
+
+<th>
+ยินดีต้อนรับสู่ Merge Royal 1.0.0! 🎉
+เวอร์ชันแรกของเรามาแล้ว:
+• เลื่อนและรวมไพ่จาก 2 ไปจนถึง 4096 และไกลกว่านั้น
+• ต่อคอมโบเพื่อรับตัวคูณคะแนนสูง ๆ
+• ไพ่ดอกพิเศษ (♠♥♣♦♛): โบนัส ระเบิด และสับไพ่
+• ไพ่โบนัสสีทองนุ่มนวลและกราฟิกนีออนเนี้ยบ ๆ
+• บันทึกอัตโนมัติ · เล่นออฟไลน์ 100% · ไม่ต้องสมัคร
+ขอบคุณที่เล่น — รวมไพ่เพื่อชัยชนะ!
+</th>
+
+<id>
+Selamat datang di Merge Royal 1.0.0! 🎉
+Rilis perdana kami hadir:
+• Geser & gabungkan kartu dari 2 hingga 4096 dan lebih
+• Rangkai combo untuk pengganda skor besar
+• Kartu jenis spesial (♠♥♣♦♛): bonus, bom & kocok
+• Kartu bonus emas lembut dan visual neon yang rapi
+• Simpan otomatis · 100% offline · tanpa pendaftaran
+Terima kasih sudah bermain — gabungkan untuk menang!
+</id>
+
+<ms>
+Selamat datang ke Merge Royal 1.0.0! 🎉
+Keluaran pertama kami sudah tiba:
+• Luncur & gabungkan kad dari 2 hingga 4096 dan lebih
+• Rantai kombo untuk pengganda skor besar
+• Kad sut istimewa (♠♥♣♦♛): bonus, bom & kocok
+• Kad bonus emas lembut dan visual neon yang kemas
+• Simpan automatik · 100% luar talian · tanpa pendaftaran
+Terima kasih kerana bermain — gabung untuk menang!
+</ms>
+
+<hi-IN>
+Merge Royal 1.0.0 में आपका स्वागत है! 🎉
+हमारा पहला रिलीज़ आ गया है:
+• कार्ड को 2 से 4096 और आगे तक स्लाइड और मर्ज करें
+• बड़े स्कोर गुणकों के लिए कॉम्बो चेन बनाएं
+• खास सूट कार्ड (♠♥♣♦♛): बोनस, बम और शफ़ल
+• मुलायम सुनहरे बोनस कार्ड और निखरे नियॉन विज़ुअल
+• ऑटो-सेव · 100% ऑफ़लाइन · कोई साइन-अप नहीं
+खेलने के लिए धन्यवाद — मर्ज करें और जीतें!
+</hi-IN>
+
+<ar>
+مرحبًا بك في Merge Royal 1.0.0! 🎉
+أول إصدار لنا هنا:
+• اسحب وادمج البطاقات من 2 إلى 4096 وأبعد
+• سلاسل كومبو لمضاعفات نقاط كبيرة
+• بطاقات رموز خاصة (♠♥♣♦♛): مكافآت وقنابل وخلط
+• بطاقات مكافأة ذهبية ناعمة ورسومات نيون متقنة
+• حفظ تلقائي · دون اتصال 100% · بدون تسجيل
+شكرًا للعب — ادمج لتفوز!
+</ar>
+
+<cs-CZ>
+Vítej v Merge Royal 1.0.0! 🎉
+Naše první verze je tu:
+• Posouvej a slučuj karty od 2 do 4096 a dál
+• Řetěz comba pro velké násobiče skóre
+• Speciální barevné karty (♠♥♣♦♛): bonusy, bomby a zamíchání
+• Jemně zlaté bonusové karty a vyladěná neonová grafika
+• Automatické ukládání · 100% offline · bez registrace
+Díky za hraní — sluč a vyhraj!
+</cs-CZ>
+
+<sv-SE>
+Välkommen till Merge Royal 1.0.0! 🎉
+Vår allra första version är här:
+• Dra och slå ihop kort från 2 till 4096 och längre
+• Kedja combos för stora poängmultiplikatorer
+• Speciella färgkort (♠♥♣♦♛): bonusar, bomber och blandning
+• Mjukt gyllene bonuskort och polerad neongrafik
+• Autospara · 100% offline · ingen registrering
+Tack för att du spelar — slå ihop för att vinna!
+</sv-SE>
+
+<ro>
+Bine ai venit în Merge Royal 1.0.0! 🎉
+Prima noastră versiune este aici:
+• Glisează și îmbină cărți de la 2 la 4096 și mai departe
+• Înlănțuie combo-uri pentru multiplicatori mari de scor
+• Cărți speciale de simbol (♠♥♣♦♛): bonusuri, bombe și amestecare
+• Cărți bonus aurii, fine și grafică neon rafinată
+• Salvare automată · 100% offline · fără înregistrare
+Mulțumim că joci — îmbină ca să câștigi!
+</ro>
+
+<el-GR>
+Καλώς ήρθες στο Merge Royal 1.0.0! 🎉
+Η πρώτη μας έκδοση είναι εδώ:
+• Σύρε και συνδύασε κάρτες από το 2 ως το 4096 και πέρα
+• Αλυσίδες combo για μεγάλους πολλαπλασιαστές σκορ
+• Ειδικές κάρτες συμβόλων (♠♥♣♦♛): μπόνους, βόμβες και ανακάτεμα
+• Απαλά χρυσές κάρτες μπόνους και καλοδουλεμένα neon γραφικά
+• Αυτόματη αποθήκευση · 100% εκτός σύνδεσης · χωρίς εγγραφή
+Ευχαριστούμε που παίζεις — συνδύασε για να νικήσεις!
+</el-GR>
+
+<hu-HU>
+Üdv a Merge Royal 1.0.0-ban! 🎉
+Itt az első kiadásunk:
+• Csúsztass és egyesíts kártyákat 2-től 4096-ig és tovább
+• Kombó-láncok nagy pontszorzókért
+• Különleges szín-kártyák (♠♥♣♦♛): bónuszok, bombák és keverés
+• Lágy arany bónuszkártyák és kidolgozott neon látvány
+• Automatikus mentés · 100% offline · regisztráció nélkül
+Köszönjük, hogy játszol — egyesíts a győzelemért!
+</hu-HU>

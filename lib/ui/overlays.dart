@@ -209,11 +209,18 @@ class _ConfettiPainter extends CustomPainter {
   bool shouldRepaint(_ConfettiPainter old) => old.t != t;
 }
 
-/// Big centre combo flash (×2, ×3 …) that pops in then fades away.
+/// Big centre flash that pops in then fades away. Shows a green/amber combo
+/// multiplier (×2, ×3 …) on a merge, or a red point penalty (-1, -2 …) on a
+/// wrong drop when [penalty] is true.
 class ComboPopup extends StatefulWidget {
-  const ComboPopup({super.key, required this.combo, required this.onDone});
+  const ComboPopup(
+      {super.key,
+      required this.combo,
+      required this.onDone,
+      this.penalty = false});
   final int combo;
   final VoidCallback onDone;
+  final bool penalty;
 
   @override
   State<ComboPopup> createState() => _ComboPopupState();
@@ -239,9 +246,13 @@ class _ComboPopupState extends State<ComboPopup>
     super.dispose();
   }
 
-  Color get _color => widget.combo >= 4
+  Color get _color => widget.penalty
       ? AppTheme.danger
-      : (widget.combo == 3 ? AppTheme.purpleGlow : AppTheme.warning);
+      : (widget.combo >= 4
+          ? AppTheme.danger
+          : (widget.combo == 3 ? AppTheme.purpleGlow : AppTheme.warning));
+
+  String get _label => widget.penalty ? '-${widget.combo}' : '×${widget.combo}';
 
   @override
   Widget build(BuildContext context) {
@@ -261,7 +272,7 @@ class _ComboPopupState extends State<ComboPopup>
                 child: Transform.scale(
                   scale: scale.clamp(0.0, 2.0),
                   child: Text(
-                    '×${widget.combo}',
+                    _label,
                     style: AppTheme.arcade(
                       size: 110,
                       color: _color,
@@ -301,24 +312,29 @@ class GameOverDialog extends StatelessWidget {
     return _Scrim(
       child: NeonPanel(
         color: AppTheme.danger,
-        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 32),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const NeonText('GAME OVER', size: 36, color: AppTheme.danger),
-          const SizedBox(height: 22),
-          _stat('SCORE', '$score'),
-          const SizedBox(height: 10),
-          _stat('BEST', '$best'),
-          const SizedBox(height: 10),
-          _stat('LEVEL', '$level'),
-          const SizedBox(height: 26),
-          NeonButton(label: 'RETRY', onTap: onRetry, width: 240),
-          const SizedBox(height: 16),
-          NeonButton(
-              label: 'HOME',
-              onTap: onHome,
-              width: 240,
-              color: const Color(0xFF3D7BFF)),
-        ]),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 30),
+        // Constrain to the button width so the stat rows (space-between) don't
+        // stretch the panel to full screen width and clip its neon border.
+        child: SizedBox(
+          width: 240,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const NeonText('GAME OVER', size: 34, color: AppTheme.danger),
+            const SizedBox(height: 22),
+            _stat('SCORE', '$score'),
+            const SizedBox(height: 10),
+            _stat('BEST', '$best'),
+            const SizedBox(height: 10),
+            _stat('LEVEL', '$level'),
+            const SizedBox(height: 26),
+            NeonButton(label: 'RETRY', onTap: onRetry, width: 240),
+            const SizedBox(height: 16),
+            NeonButton(
+                label: 'HOME',
+                onTap: onHome,
+                width: 240,
+                color: const Color(0xFF3D7BFF)),
+          ]),
+        ),
       ),
     );
   }
@@ -375,7 +391,7 @@ class HowToPlayDialog extends StatelessWidget {
                     _section(
                       icon: Icons.warning_amber,
                       title: 'MISTAKES',
-                      body: 'A wrong drop costs one of your MISTAKES LEFT (bottom-left). DRAGGABLE AT A TIME (bottom-right) is how many cards you can grab at once.',
+                      body: 'Dropping onto a card that does NOT match is a wrong merge: it costs one of your MISTAKES LEFT and deducts points (−1, −2, … more for each wrong drop in a row). Moving onto an empty slot is always free. DRAGGABLE AT A TIME (bottom-right) is how many cards you can grab at once.',
                     ),
                     const SizedBox(height: 20),
                   ]),

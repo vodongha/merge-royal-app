@@ -33,6 +33,8 @@ class _GameScreenState extends State<GameScreen> {
   Timer? _toastTimer;
   int? _combo;
   int _comboSeq = 0;
+  int? _penalty;
+  int _penaltySeq = 0;
 
   @override
   void initState() {
@@ -58,6 +60,14 @@ class _GameScreenState extends State<GameScreen> {
         setState(() {
           _combo = n;
           _comboSeq++;
+        });
+      }
+    };
+    controller.onPenalty = (n) {
+      if (mounted) {
+        setState(() {
+          _penalty = n;
+          _penaltySeq++;
         });
       }
     };
@@ -168,6 +178,15 @@ class _GameScreenState extends State<GameScreen> {
                   combo: _combo!,
                   onDone: () {
                     if (mounted) setState(() => _combo = null);
+                  },
+                ),
+              if (_penalty != null)
+                ComboPopup(
+                  key: ValueKey('penalty$_penaltySeq'),
+                  combo: _penalty!,
+                  penalty: true,
+                  onDone: () {
+                    if (mounted) setState(() => _penalty = null);
                   },
                 ),
               if (_toast != null) _ToastBanner(message: _toast!),
