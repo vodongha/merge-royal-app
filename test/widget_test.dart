@@ -88,6 +88,44 @@ void main() {
     }
   });
 
+  test('a fresh board always has at least one legal move', () {
+    // Deal many boards; every one must be solvable (a matching front pair, a
+    // grabbable card matching another front, or an empty column).
+    for (int trial = 0; trial < 200; trial++) {
+      final c = GameController();
+      c.debugDealInitialBoard();
+      expect(c.debugHasBoardMove(), isTrue,
+          reason: 'trial $trial produced a dead board');
+    }
+  });
+
+  test('dealing a fresh row keeps the board solvable', () {
+    for (int trial = 0; trial < 200; trial++) {
+      final c = GameController();
+      c.debugDealInitialBoard();
+      c.debugDealRowOnTop();
+      expect(c.debugHasBoardMove(), isTrue,
+          reason: 'trial $trial produced a dead board after DEAL');
+    }
+  });
+
+  test('no un-clearable blockers are dealt when the player has no bombs', () {
+    for (int trial = 0; trial < 100; trial++) {
+      final c = GameController();
+      c.level = 20; // high lock chance
+      c.debugBombs = 0;
+      c.debugDealInitialBoard();
+      for (int r = 0; r < 6; r++) {
+        c.debugDealRowOnTop();
+      }
+      final anyLocked =
+          c.columns.any((col) => col.any((card) => card.locked));
+      expect(anyLocked, isFalse,
+          reason: 'trial $trial dealt a blocker with no bomb to clear it');
+      expect(c.debugHasBoardMove(), isTrue);
+    }
+  });
+
   test('staircase columns cascade into a combo', () {
     final c = GameController();
     // Column 1: 8, 4 (front). Dropping a 4 chains 4+4=8, 8+8=16.

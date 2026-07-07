@@ -108,6 +108,7 @@ class GameController extends ChangeNotifier {
             allowHazards: false, avoid: prev == null || prev.locked ? null : prev.value));
       }
     }
+    _ensureSolvable();
   }
 
   /// Generates a card. [avoid] is the value of the card it will sit next to —
@@ -122,8 +123,11 @@ class GameController extends ChangeNotifier {
     final value = pool[_rng.nextInt(pool.length)];
 
     if (allowHazards) {
+      // Only ever deal a blocker the player can actually remove: a locked card
+      // needs a bomb, so never spawn one when they have no bombs left (it would
+      // be an un-clearable dead weight).
       final lockChance = (0.04 + level * 0.012).clamp(0.0, 0.22);
-      if (_rng.nextDouble() < lockChance) {
+      if (bombs > 0 && _rng.nextDouble() < lockChance) {
         return CardData(value: value, locked: true);
       }
       final specialChance = 0.12 + level * 0.006;
@@ -328,7 +332,73 @@ class GameController extends ChangeNotifier {
       columns[i].insert(
           0, _spawnCard(avoid: top == null || top.locked ? null : top.value));
     }
+    _ensureSolvable();
     onDeal?.call();
+  }
+
+  /// Guarantees the board always offers at least one legal move after cards are
+  /// dealt (including locked/blocker cards), so the player is never forced to
+  /// restart. If no move exists, one freshly-dealt back card is rewritten into a
+  /// normal (unlocked) card whose value matches another column's front — the
+  /// player can then grab that whole column and merge it onto the match.
+  void _ensureSolvable() {
+    if (_hasBoardMove()) return;
+
+    // Find an unlocked front to merge onto. If every front happens to be locked,
+    // free the first one up so a match is actually playable.
+    int target = -1;
+    for (int j = 0; j < kColumnCount; j++) {
+      if (columns[j].isNotEmpty && !columns[j].last.locked) {
+        target = j;
+        break;
+      }
+    }
+    if (target == -1) {
+      for (int j = 0; j < kColumnCount; j++) {
+        if (columns[j].isNotEmpty) {
+          columns[j].last.locked = false;
+          target = j;
+          break;
+        }
+      }
+      if (target == -1) return; // board empty — an empty column is already a move
+    }
+
+    final targetValue = columns[target].last.value;
+    // Rewrite some other column's just-dealt back card (index 0) to match, then
+    // re-check that the board is now solvable.
+    for (int i = 0; i < kColumnCount; i++) {
+      if (i == target || columns[i].isEmpty) continue;
+      columns[i][0] = CardData(value: targetValue);
+      if (_hasBoardMove()) return;
+    }
+  }
+
+  /// True if the player has a legal board move right now: an empty column to
+  /// relocate into, or any grabbable card whose value equals another column's
+  /// (unlocked) front card. Grabbing a card carries everything below it, so the
+  /// grabbed card itself is the one that must match the destination front.
+  bool _hasBoardMove() {
+    for (int i = 0; i < kColumnCount; i++) {
+      if (columns[i].isEmpty) return true; // relocation is always available
+    }
+    for (int i = 0; i < kColumnCount; i++) {
+      final ci = columns[i];
+      // Cards can only be carried from below the deepest locked card.
+      int floor = 0;
+      for (int k = 0; k < ci.length; k++) {
+        if (ci[k].locked) floor = k + 1;
+      }
+      for (int s = floor; s < ci.length; s++) {
+        final v = ci[s].value;
+        for (int j = 0; j < kColumnCount; j++) {
+          if (i == j || columns[j].isEmpty) continue;
+          final fj = columns[j].last;
+          if (!fj.locked && fj.value == v) return true;
+        }
+      }
+    }
+    return false;
   }
 
   /// Player-triggered draw: deal a fresh row of cards on demand (same as a
@@ -397,20 +467,6 @@ class GameController extends ChangeNotifier {
   // ---- Game-over detection ------------------------------------------------
   bool _boardFull() => columns.every((c) => c.length >= kColumnCapacity);
 
-  bool _hasLegalMerge() {
-    for (int i = 0; i < kColumnCount; i++) {
-      if (columns[i].isEmpty) return true; // can always relocate
-      final fi = columns[i].last;
-      if (fi.locked) continue;
-      for (int j = 0; j < kColumnCount; j++) {
-        if (i == j || columns[j].isEmpty) continue;
-        final fj = columns[j].last;
-        if (!fj.locked && fj.value == fi.value) return true;
-      }
-    }
-    return false;
-  }
-
   void _checkGameOver() {
     if (gameOver) return;
     if (mistakesLeft <= 0) {
@@ -422,9 +478,24 @@ class GameController extends ChangeNotifier {
       _triggerGameOver();
       return;
     }
-    if (_boardFull() && !_hasLegalMerge() && !hasBomb && !hasShuffle) {
+    // The board is full (so DEAL can't buy room), there's no board move, and no
+    // power-up to break the deadlock (a bomb can clear a blocker, a shuffle can
+    // rearrange) — only then is it truly over.
+    if (_boardFull() &&
+        !_hasBoardMove() &&
+        !(hasBomb && _hasLockedCard()) &&
+        !hasShuffle) {
       _triggerGameOver();
     }
+  }
+
+  bool _hasLockedCard() {
+    for (final c in columns) {
+      for (final card in c) {
+        if (card.locked) return true;
+      }
+    }
+    return false;
   }
 
   void _triggerGameOver() {
@@ -502,6 +573,16 @@ class GameController extends ChangeNotifier {
       await prefs.remove(_kSaveKey);
     } catch (_) {}
   }
+
+  // ---- Test hooks ---------------------------------------------------------
+  @visibleForTesting
+  void debugDealInitialBoard() => _dealInitialBoard();
+  @visibleForTesting
+  void debugDealRowOnTop() => _dealRowOnTop();
+  @visibleForTesting
+  bool debugHasBoardMove() => _hasBoardMove();
+  @visibleForTesting
+  set debugBombs(int v) => bombs = v;
 
   Future<int> loadBest() async {
     try {
