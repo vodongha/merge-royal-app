@@ -365,12 +365,26 @@ class GameController extends ChangeNotifier {
     }
 
     final targetValue = columns[target].last.value;
-    // Rewrite some other column's just-dealt back card (index 0) to match, then
-    // re-check that the board is now solvable.
+    // Rewrite some other column's just-dealt back card (index 0) to match the
+    // target's front. Prefer a column where the seeded card won't land directly
+    // on top of an equal card (which would look like an un-merged duplicate),
+    // then re-check solvability (a locked card can change which card a grab
+    // actually carries). Revert and try the next column if it didn't help.
+    final order = <int>[];
     for (int i = 0; i < kColumnCount; i++) {
       if (i == target || columns[i].isEmpty) continue;
+      final below = columns[i].length > 1 ? columns[i][1].value : null;
+      if (below != targetValue) order.add(i); // non-adjacent candidates first
+    }
+    for (int i = 0; i < kColumnCount; i++) {
+      if (i == target || columns[i].isEmpty || order.contains(i)) continue;
+      order.add(i); // adjacent fallbacks last
+    }
+    for (final i in order) {
+      final saved = columns[i][0];
       columns[i][0] = CardData(value: targetValue);
       if (_hasBoardMove()) return;
+      columns[i][0] = saved; // revert and try the next column
     }
   }
 

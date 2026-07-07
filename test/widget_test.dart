@@ -109,6 +109,24 @@ void main() {
     }
   });
 
+  test('dealing never leaves two equal cards stacked adjacently', () {
+    for (int trial = 0; trial < 300; trial++) {
+      final c = GameController();
+      c.level = 15;
+      c.debugDealInitialBoard();
+      for (int r = 0; r < 5; r++) {
+        c.debugDealRowOnTop();
+      }
+      for (final col in c.columns) {
+        for (int i = 1; i < col.length; i++) {
+          if (col[i].locked || col[i - 1].locked) continue;
+          expect(col[i].value == col[i - 1].value, isFalse,
+              reason: 'trial $trial left an un-merged duplicate pair');
+        }
+      }
+    }
+  });
+
   test('no un-clearable blockers are dealt when the player has no bombs', () {
     for (int trial = 0; trial < 100; trial++) {
       final c = GameController();
