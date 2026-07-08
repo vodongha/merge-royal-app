@@ -23,6 +23,101 @@ class CardComponent extends PositionComponent {
 
   double get _radius => size.x * 0.13;
 
+  // Cached text painters. A TextPainter builds a native ui.Paragraph, so
+  // rebuilding one every frame leaked off-heap memory and OOM-crashed long
+  // (high-level) games. We keep them and only rebuild when the text/size that
+  // actually feeds them changes (a merge changes the value, a resize the size).
+  TextPainter? _cornerTp;
+  String? _cornerKey;
+  TextPainter? _emblemTp;
+  String? _emblemKey;
+
+  // Gradient shaders are native objects too; cache them the same way.
+  ui.Shader? _bodyShader;
+  String? _bodyKey;
+  ui.Shader? _haloShader;
+  String? _haloKey;
+
+  @override
+  void onRemove() {
+    _cornerTp?.dispose();
+    _emblemTp?.dispose();
+    _bodyShader?.dispose();
+    _haloShader?.dispose();
+    super.onRemove();
+  }
+
+  ui.Shader _bodyGradient(Rect rect) {
+    final key =
+        '${size.x.toStringAsFixed(1)}x${size.y.toStringAsFixed(1)}|${data.locked ? 'L' : data.value}';
+    if (_bodyKey != key) {
+      _bodyShader?.dispose();
+      final colors = data.locked
+          ? const [Color(0xFFDDE1E4), Color(0xFFBBC0C4)]
+          : AppTheme.cardGradient(data.value);
+      _bodyShader =
+          ui.Gradient.linear(rect.topCenter, rect.bottomCenter, colors);
+      _bodyKey = key;
+    }
+    return _bodyShader!;
+  }
+
+  ui.Shader _haloGradient(Offset c, double glowR) {
+    final key = glowR.toStringAsFixed(1);
+    if (_haloKey != key) {
+      _haloShader?.dispose();
+      _haloShader = ui.Gradient.radial(
+        c,
+        glowR,
+        const [
+          Color(0xFFFFF3D0), // bright warm-gold core
+          Color(0xFFFFDE95), // amber
+          Color(0xFFF3BE55), // deeper amber
+          Color(0x00F3BE55), // fade out to transparent
+        ],
+        const [0.0, 0.42, 0.7, 1.0],
+      );
+      _haloKey = key;
+    }
+    return _haloShader!;
+  }
+
+  TextPainter _cornerPainter() {
+    final key = '${data.label}|${size.y.toStringAsFixed(1)}';
+    if (_cornerKey != key) {
+      _cornerTp?.dispose();
+      _cornerTp = TextPainter(
+        text: TextSpan(
+          text: data.label,
+          style: AppTheme.arcade(
+              size: size.y * 0.11,
+              color: AppTheme.cardInk(data.value),
+              weight: FontWeight.w700),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      _cornerKey = key;
+    }
+    return _cornerTp!;
+  }
+
+  TextPainter _emblemPainter() {
+    final key =
+        '${data.centerSymbol}|${size.x.toStringAsFixed(1)}|${data.value}|${data.suit.index}';
+    if (_emblemKey != key) {
+      _emblemTp?.dispose();
+      _emblemTp = TextPainter(
+        text: TextSpan(
+          text: data.centerSymbol,
+          style: TextStyle(fontSize: size.x * 0.52, color: data.symbolColor),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      _emblemKey = key;
+    }
+    return _emblemTp!;
+  }
+
   @override
   void render(ui.Canvas canvas) {
     final rect = size.toRect();
@@ -38,15 +133,7 @@ class CardComponent extends PositionComponent {
     }
 
     // Body.
-    final colors = data.locked
-        ? const [Color(0xFFDDE1E4), Color(0xFFBBC0C4)]
-        : AppTheme.cardGradient(data.value);
-    canvas.drawRRect(
-      rrect,
-      Paint()
-        ..shader =
-            ui.Gradient.linear(rect.topCenter, rect.bottomCenter, colors),
-    );
+    canvas.drawRRect(rrect, Paint()..shader = _bodyGradient(rect));
 
     // Top sheen.
     canvas.save();
@@ -89,8 +176,8 @@ class CardComponent extends PositionComponent {
     // Corner value — top-left plus a mirrored copy bottom-right, like a
     // playing card. The top-left one sits inside the peeking strip so stacked
     // cards stay readable.
-    _drawCorner(canvas, data.label);
-    _drawMirroredCorner(canvas, data.label);
+    _drawCorner(canvas);
+    _drawMirroredCorner(canvas);
 
     // Big centre emblem (suit for special cards, value emoji otherwise).
     _drawEmblem(canvas, rect);
@@ -103,46 +190,21 @@ class CardComponent extends PositionComponent {
     // emblem sits in a soft pool of light rather than a hard disc.
     if (data.isSpecial) {
       final glowR = size.x * 0.46;
-      canvas.drawCircle(
-        c,
-        glowR,
-        Paint()
-          ..shader = ui.Gradient.radial(
-            c,
-            glowR,
-            const [
-              Color(0xFFFFF3D0), // bright warm-gold core
-              Color(0xFFFFDE95), // amber
-              Color(0xFFF3BE55), // deeper amber
-              Color(0x00F3BE55), // fade out to transparent
-            ],
-            const [0.0, 0.42, 0.7, 1.0],
-          ),
-      );
+      canvas.drawCircle(c, glowR, Paint()..shader = _haloGradient(c, glowR));
     }
-    final tp = TextPainter(
-      text: TextSpan(
-        text: data.centerSymbol,
-        style: TextStyle(fontSize: size.x * 0.52, color: data.symbolColor),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
+    final tp = _emblemPainter();
     tp.paint(canvas, Offset(c.dx - tp.width / 2, c.dy - tp.height / 2));
   }
 
-  void _drawCorner(ui.Canvas canvas, String text) {
-    _drawText(canvas, text,
-        offset: Offset(size.x * 0.10, size.y * 0.03),
-        fontSize: size.y * 0.11,
-        color: AppTheme.cardInk(data.value),
-        weight: FontWeight.w700);
+  void _drawCorner(ui.Canvas canvas) {
+    _cornerPainter().paint(canvas, Offset(size.x * 0.10, size.y * 0.03));
   }
 
-  void _drawMirroredCorner(ui.Canvas canvas, String text) {
+  void _drawMirroredCorner(ui.Canvas canvas) {
     canvas.save();
     canvas.translate(size.x, size.y);
     canvas.rotate(3.14159265);
-    _drawCorner(canvas, text);
+    _drawCorner(canvas);
     canvas.restore();
   }
 
@@ -156,20 +218,5 @@ class CardComponent extends PositionComponent {
     canvas.drawCircle(c, r, ring);
     canvas.drawLine(Offset(c.dx - r * 0.7, c.dy - r * 0.7),
         Offset(c.dx + r * 0.7, c.dy + r * 0.7), ring);
-  }
-
-  void _drawText(ui.Canvas canvas, String text,
-      {required Offset offset,
-      required double fontSize,
-      required Color color,
-      FontWeight weight = FontWeight.w600}) {
-    final tp = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: AppTheme.arcade(size: fontSize, color: color, weight: weight),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    tp.paint(canvas, offset);
   }
 }
